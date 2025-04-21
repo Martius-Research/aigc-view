@@ -5,98 +5,98 @@
         <div v-for="n in 20" :key="n" class="particle" :style="getParticleStyle(n)"></div>
       </div>
     </div>
-    
+
     <div class="auth-content">
       <a-card class="auth-card" :bordered="false">
         <div class="card-header">
           <div class="logo-container">
-            <div class="logo-icon">🎨</div>
-            <div class="logo-text">ClothesGPT</div>
+
+            <div class="logo-text"> </div>
           </div>
           <h1 class="card-title">{{ isLogin ? '欢迎回来' : '创建账号' }}</h1>
           <p class="card-subtitle">{{ isLogin ? '登录您的账号以继续' : '填写以下信息创建您的账号' }}</p>
         </div>
-        
+
         <a-form
-          :model="formState"
-          class="login-form"
-          @finish="handleSubmit"
+            :model="formState"
+            class="login-form"
+            @finish="handleSubmit"
         >
           <a-form-item>
             <a-input
-              v-model:value="formState.username"
-              placeholder="账户"
-              size="large"
-              @input="isSubmitted && validateUsername"
+                v-model:value="formState.username"
+                placeholder="请输入用户名"
+                size="large"
+                @input="isSubmitted && validateUsername"
             >
               <template #prefix>
-                <user-outlined class="site-form-item-icon" />
+                <user-outlined class="site-form-item-icon"/>
               </template>
             </a-input>
             <div v-if="usernameError" class="error-message">{{ usernameError }}</div>
           </a-form-item>
-          
+
           <a-form-item>
             <a-input-password
-              v-model:value="formState.password"
-              placeholder="密码"
-              size="large"
-              @input="isSubmitted && validatePassword"
-              :visibilityToggle="true"
-              :visible="showPassword"
-              @visibilityChange="togglePasswordVisibility"
+                v-model:value="formState.password"
+                placeholder="密码"
+                size="large"
+                @input="isSubmitted && validatePassword"
+                :visibilityToggle="true"
+                :visible="showPassword"
+                @visibilityChange="togglePasswordVisibility"
             >
               <template #prefix>
-                <lock-outlined class="site-form-item-icon" />
+                <lock-outlined class="site-form-item-icon"/>
               </template>
             </a-input-password>
             <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
           </a-form-item>
-          
+
           <a-form-item v-if="!isLogin">
             <a-input-password
-              v-model:value="formState.confirmPassword"
-              placeholder="确认密码"
-              size="large"
-              @input="isSubmitted && validateConfirmPassword"
-              :visibilityToggle="true"
-              :visible="showPassword"
-              @visibilityChange="togglePasswordVisibility"
+                v-model:value="formState.confirmPassword"
+                placeholder="确认密码"
+                size="large"
+                @input="isSubmitted && validateConfirmPassword"
+                :visibilityToggle="true"
+                :visible="showPassword"
+                @visibilityChange="togglePasswordVisibility"
             >
               <template #prefix>
-                <safety-outlined class="site-form-item-icon" />
+                <safety-outlined class="site-form-item-icon"/>
               </template>
             </a-input-password>
             <div v-if="confirmPasswordError" class="error-message">{{ confirmPasswordError }}</div>
           </a-form-item>
-          
+
           <a-form-item v-if="!isLogin">
             <a-input
-              v-model:value="formState.email"
-              placeholder="邮箱地址"
-              size="large"
-              @input="isSubmitted && validateEmail"
+                v-model:value="formState.email"
+                placeholder="邮箱地址"
+                size="large"
+                @input="isSubmitted && validateEmail"
             >
               <template #prefix>
-                <mail-outlined class="site-form-item-icon" />
+                <mail-outlined class="site-form-item-icon"/>
               </template>
             </a-input>
             <div v-if="emailError" class="error-message">{{ emailError }}</div>
           </a-form-item>
-          
+
           <a-form-item>
             <a-button
-              type="primary"
-              html-type="submit"
-              class="login-form-button"
-              :disabled="!isFormValid"
-              size="large"
-              :loading="loading"
+                type="primary"
+                html-type="submit"
+                class="login-form-button"
+                :disabled="!isFormValid"
+                size="large"
+                :loading="loading"
             >
               {{ isLogin ? '登录' : '注册' }}
             </a-button>
           </a-form-item>
-          
+
           <div class="form-footer">
             <div class="auth-switch">
               {{ isLogin ? '还没有账号？' : '已有账号？' }}
@@ -104,25 +104,31 @@
                 {{ isLogin ? '立即注册' : '去登录' }}
               </a>
             </div>
-            
+
             <div v-if="formError" class="form-error">
-              <a-alert :message="formError" type="error" show-icon />
+              <a-alert :message="formError" type="error" show-icon/>
             </div>
           </div>
         </a-form>
       </a-card>
     </div>
-    
+
     <div class="auth-footer">
-      
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { UserOutlined, LockOutlined, SafetyOutlined, MailOutlined } from '@ant-design/icons-vue'
+import {ref, computed, reactive} from 'vue'
+import {useRouter} from 'vue-router'
+import {UserOutlined, LockOutlined, SafetyOutlined, MailOutlined} from '@ant-design/icons-vue'
+import type {AxiosResponse} from "axios";
+import type {IApiResponse} from '@/interface/IApiResponse.ts'
+
+import {login, register} from '@/api/login.ts'
+
+import {ElMessage} from 'element-plus'
 
 const router = useRouter()
 
@@ -156,15 +162,15 @@ const formState = reactive({
 // 表单验证
 const validateUsername = () => {
   if (!formState.username) {
-    usernameError.value = isSubmitted.value ? '账户不能为空' : ''
+    usernameError.value = isSubmitted.value ? '用户名不能为空' : ''
     return false
   }
-  
+
   if (formState.username.length < 3) {
-    usernameError.value = isSubmitted.value ? '账户不能少于3个字符' : ''
+    usernameError.value = isSubmitted.value ? '用户名不能少于3个字符' : ''
     return false
   }
-  
+
   usernameError.value = ''
   return true
 }
@@ -174,12 +180,12 @@ const validatePassword = () => {
     passwordError.value = isSubmitted.value ? '密码不能为空' : ''
     return false
   }
-  
+
   if (formState.password.length < 6) {
     passwordError.value = isSubmitted.value ? '密码不能少于6个字符' : ''
     return false
   }
-  
+
   passwordError.value = ''
   return true
 }
@@ -189,12 +195,12 @@ const validateConfirmPassword = () => {
     confirmPasswordError.value = isSubmitted.value ? '请确认密码' : ''
     return false
   }
-  
+
   if (formState.confirmPassword !== formState.password) {
     confirmPasswordError.value = isSubmitted.value ? '两次输入的密码不一致' : ''
     return false
   }
-  
+
   confirmPasswordError.value = ''
   return true
 }
@@ -204,13 +210,13 @@ const validateEmail = () => {
     emailError.value = isSubmitted.value ? '邮箱不能为空' : ''
     return false
   }
-  
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!isLogin.value && !emailRegex.test(formState.email)) {
     emailError.value = isSubmitted.value ? '请输入有效的邮箱地址' : ''
     return false
   }
-  
+
   emailError.value = ''
   return true
 }
@@ -244,9 +250,11 @@ const toggleAuthMode = () => {
 
 // 提交表单
 const handleSubmit = async () => {
+
+
   formError.value = '' // 清除可能的上一次错误
   isSubmitted.value = true // 设置提交标志为true
-  
+
   // 重新验证表单
   validateUsername()
   validatePassword()
@@ -254,43 +262,69 @@ const handleSubmit = async () => {
     validateConfirmPassword()
     validateEmail()
   }
-  
+
   if (!isFormValid.value) {
     formError.value = '请正确填写所有必填项'
     return
   }
-  
-  try {
-    loading.value = true
-    // 这里模拟API调用，实际项目中应替换为真实的API请求
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // 模拟成功登录/注册
-    if (isLogin.value) {
-      console.log('用户登录:', { username: username.value, password: password.value })
-      // 登录成功后跳转到图片生成页面
-      router.push('/')
-    } else {
-      console.log('用户注册:', { 
-        username: username.value, 
-        password: password.value,
-        email: email.value 
+
+  if (isLogin.value) {
+    try {
+      loading.value = true
+      const response: AxiosResponse<IApiResponse> = await login({
+        username: formState.username,
+        password: formState.password,
+      });
+
+      const {
+        data: {successful, resultHint,resultValue},
+      } = response;
+      if (!successful) return ElMessage({
+        message: resultHint,
+        type: 'error',
       })
-      
-      // 注册成功后转到登录状态
+      localStorage.setItem('Authorization', resultValue);
+      router.push('/')
+
+    } catch (err) {
+      console.log(err);
+    } finally {
+      loading.value = false
+    }
+
+  } else {
+
+    try {
+      loading.value = true
+      const response: AxiosResponse<IApiResponse> = await register({
+        username: formState.username,
+        password: formState.password,
+        email: formState.email
+      });
+
+      const {
+        data: {successful, resultHint},
+      } = response;
+      if (!successful) return resultHint
+      ElMessage({
+        message: "注册成功，请登录",
+        type: 'success',
+      })
+
+
+    } catch (err) {
+      console.log(err);
+    } finally {
       isLogin.value = true
       password.value = ''
-      formError.value = '注册成功，请登录'
+      loading.value = false
+
     }
-  } catch (error) {
-    console.error('登录/注册失败:', error)
-    formError.value = isLogin.value ? '登录失败，请检查用户名和密码' : '注册失败，请稍后再试'
-  } finally {
-    loading.value = false
   }
+
+
 }
 
- 
 
 // 生成随机粒子样式
 const getParticleStyle = (_index: number) => {
@@ -300,7 +334,7 @@ const getParticleStyle = (_index: number) => {
   const animationDuration = Math.floor(Math.random() * 20) + 10
   const animationDelay = Math.random() * 5
   const opacity = Math.random() * 0.5 + 0.1
-  
+
   return {
     width: `${size}px`,
     height: `${size}px`,
@@ -315,77 +349,91 @@ const getParticleStyle = (_index: number) => {
 
 <style scoped>
 .auth-container {
-  width: 100%;
-  height: 100vh;
+  width: 100vw;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  background-image: 
-    radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.1) 0%, transparent 80%),
-    radial-gradient(circle at 90% 90%, rgba(14, 165, 233, 0.1) 0%, transparent 70%),
+  /* Updated background gradient for a richer dark feel */
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  /* Adjusted radial gradients for subtle highlights */
+  background-image: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 75%),
+    radial-gradient(circle at 85% 80%, rgba(34, 211, 238, 0.09) 0%, transparent 65%),
     linear-gradient(135deg, #0f172a, #1e293b);
   overflow: hidden;
   position: relative;
-  color: #f8fafc;
+  color: #e2e8f0; /* Slightly softer text color */
 }
 
 .auth-background {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   z-index: 0;
+  /* Simplified background overlay */
+  background: linear-gradient(120deg, rgba(15, 23, 42, 0.96) 50%, rgba(30, 41, 59, 0.94) 100%);
 }
 
 .particles-container {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   top: 0;
   left: 0;
 }
 
 .particle {
-    position: absolute;
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.5), rgba(14, 165, 233, 0.5));
-    border-radius: 50%;
-    filter: blur(3px);
-    animation: float linear infinite;
-  }
-  
+  position: absolute;
+  /* Updated particle colors to match new theme */
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(34, 211, 238, 0.2));
+  border-radius: 50%;
+  filter: blur(7px); /* Slightly increased blur */
+  animation: float linear infinite;
+}
 
-  @keyframes float {
-    0% { transform: translateY(0) translateX(0) rotate(0deg); }
-    25% { transform: translateY(-20px) translateX(10px) rotate(90deg); }
-    50% { transform: translateY(0) translateX(20px) rotate(180deg); }
-    75% { transform: translateY(20px) translateX(10px) rotate(270deg); }
-    100% { transform: translateY(0) translateX(0) rotate(360deg); }
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
   }
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0) translateX(20px) rotate(180deg);
+  }
+  75% {
+    transform: translateY(20px) translateX(10px) rotate(270deg);
+  }
+  100% {
+    transform: translateY(0) translateX(0) rotate(360deg);
+  }
+}
 
 .auth-content {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 2rem 1rem;
   position: relative;
   z-index: 2;
 }
 
 .auth-card {
-  width: 420px;
-  max-width: 90%;
-  background: rgba(30, 41, 59, 0.7) !important;
-  border-radius: 16px !important;
-  backdrop-filter: blur(10px);
-  box-shadow: 
-    0 10px 25px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(56, 189, 248, 0.1);
+  width: 100%;
+  max-width: 420px;
+  /* Darker card background with slightly more transparency */
+  background: rgba(15, 23, 42, 0.9) !important;
+  border-radius: 16px !important; /* Slightly adjusted radius */
+  backdrop-filter: blur(12px);
+  /* Updated shadow and border */
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(59, 130, 246, 0.15);
   overflow: hidden;
   position: relative;
   animation: fadeIn 0.6s ease-out;
+  border: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .auth-card::before {
@@ -394,14 +442,21 @@ const getParticleStyle = (_index: number) => {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #38bdf8, #0ea5e9, #38bdf8);
+  height: 4px; /* Slightly thicker */
+  /* Updated gradient to match new theme */
+  background: linear-gradient(90deg, #3b82f6, #22d3ee, #3b82f6);
   z-index: 1;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-header {
@@ -416,41 +471,28 @@ const getParticleStyle = (_index: number) => {
   margin-bottom: 1.5rem;
 }
 
-.logo-icon {
-  font-size: 2rem;
-  margin-right: 0.5rem;
-  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: pulse 2s infinite;
-}
-
 .logo-text {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  /* Updated logo text gradient */
+  background: linear-gradient(135deg, #3b82f6, #22d3ee);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; }
-  100% { opacity: 0.8; }
 }
 
 .card-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #f8fafc; /* Brighter title color */
   margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  /* Updated text shadow */
+  text-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
 }
 
 .card-subtitle {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #94a3b8; /* Adjusted subtitle color */
+  margin-bottom: 1.2rem;
 }
 
 .login-form {
@@ -462,93 +504,153 @@ const getParticleStyle = (_index: number) => {
   height: 46px;
   font-size: 1rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #38bdf8, #0ea5e9) !important;
+  /* Updated button gradient */
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
-  transition: all 0.3s ease;
+  /* Updated button shadow */
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.28);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  color: #fff !important;
+  border-radius: 8px !important;
 }
 
 .login-form-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4);
+  transform: translateY(-2px) scale(1.03);
+  /* Updated hover shadow */
+  box-shadow: 0 7px 20px rgba(59, 130, 246, 0.35);
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important; /* Darker gradient on hover */
 }
 
 .login-form-button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .site-form-item-icon {
-  color: #64748b;
+  color: #60a5fa; /* Kept icon color, looks good */
+  font-size: 1.1rem;
 }
 
-.form-footer {
-  margin-top: 1rem;
+.a-input, .a-input-password {
+  /* Slightly darker input background */
+  background: rgba(30, 41, 59, 0.95) !important;
+  border-radius: 8px !important;
+  /* Slightly lighter border */
+  border: 1px solid #475569 !important;
+  color: #e2e8f0 !important; /* Match container text color */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.a-input:focus, .a-input-password:focus {
+  border-color: #3b82f6 !important; /* Updated focus border color */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); /* Added focus ring */
+}
+
+.a-input input, .a-input-password input {
+  background: transparent !important;
+  color: #e2e8f0 !important; /* Match container text color */
+  font-size: 1rem;
 }
 
 .error-message {
-  color: #f87171;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
+  color: #fca5a5; /* Slightly softer error color */
+  font-size: 0.8rem;
+  margin-top: 0.18rem;
+}
+
+.form-footer {
+  margin-top: 1.2rem;
 }
 
 .auth-switch {
   margin-top: 1rem;
   text-align: center;
-  font-size: 0.875rem;
-  color: #94a3b8;
+  font-size: 0.95rem;
+  color: #94a3b8; /* Match subtitle color */
 }
 
 .switch-link {
-  color: #38bdf8;
+  color: #60a5fa; /* Updated link color */
   cursor: pointer;
   font-weight: 500;
   margin-left: 4px;
-  transition: all 0.2s ease;
+  transition: color 0.2s;
   text-decoration: none;
 }
 
 .switch-link:hover {
   text-decoration: underline;
-  color: #0ea5e9;
+  color: #3b82f6; /* Updated link hover color */
 }
 
 .form-error {
   margin-top: 1rem;
 }
 
-  .auth-footer {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 2rem;
-    z-index: 10;
-    position: relative;
+.auth-footer {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2rem;
+  z-index: 10;
+  position: relative;
+}
+
+.back-btn {
+  color: #a0aec0 !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+}
+
+.back-btn:hover {
+  color: #38bdf8 !important;
+  transform: translateY(-1px);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 1.2rem 0.5rem;
+    max-width: 98vw;
+    min-width: 0;
   }
-  
-  .back-btn {
-    color: #94a3b8 !important;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
+  .auth-content {
+    padding: 0.5rem;
   }
-  
-  .back-btn:hover {
-    color: #38bdf8 !important;
-    transform: translateY(-1px);
+  .card-header {
+    margin-bottom: 1.2rem;
   }
-  
-  /* 响应式调整 */
-  @media (max-width: 576px) {
-    .auth-card {
-      padding: 1.5rem;
-    }
-    
-    .auth-content {
-      padding: 1rem;
-    }
+  .logo-text {
+    font-size: 1.2rem;
   }
+  .card-title {
+    font-size: 1.1rem;
+  }
+}
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 0.7rem 0.2rem;
+    border-radius: 10px !important;
+  }
+  .auth-content {
+    padding: 0.2rem;
+  }
+  .logo-text {
+    font-size: 1rem;
+  }
+  .card-title {
+    font-size: 1rem;
+  }
+  .card-subtitle {
+    font-size: 0.8rem;
+  }
+  .login-form-button {
+    height: 40px;
+    font-size: 0.95rem;
+  }
+}
 </style>

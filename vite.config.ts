@@ -3,7 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import path from "path"; // 需要引入 path 模块
 import components from "unplugin-vue-components/vite";
 import { AntDesignXVueResolver } from "ant-design-x-vue/resolver";
-// https://vite.dev/config/
+
 export default defineConfig({
   base: "/design",
   plugins: [
@@ -24,7 +24,7 @@ export default defineConfig({
     port: 4000,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:9000",
+        target: "http://127.0.0.1:8888",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
