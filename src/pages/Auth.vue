@@ -361,7 +361,7 @@ const getParticleStyle = (_index: number) => {
     linear-gradient(135deg, #0f172a, #1e293b);
   overflow: hidden;
   position: relative;
-  color: #e2e8f0; /* Slightly softer text color */
+  color: #e2e8f0;  
 }
 
 .auth-background {

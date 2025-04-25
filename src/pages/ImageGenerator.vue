@@ -1,1140 +1,860 @@
 <template>
-  <div class="ig-root">
-    <header class="ig-header">
-      <div class="ig-logo"></div>
-      <div class="ig-title"></div>
-      <div class="ig-user-section">
+  <a-layout class="app-layout">
+    <!-- 顶部导航栏 -->
+    <a-layout-header class="app-header">
+      <div class="logo">
+        <!-- <img src="/path/to/your/logo.png" alt="Logo" /> -->
+
+      </div>
+      <div class="user-info">
         <a-dropdown placement="bottomRight">
-          <div class="ig-user-name">
-            <span class="user-icon">👤</span>{{ userName || '用户' }}
-            <span class="dropdown-icon">▼</span>
+          <div class="user-avatar-name">
+            <UserOutlined/>
+            <span class="user-name">{{ currentUser.name }}</span>
+            <DownOutlined class="dropdown-arrow"/> <!-- Added arrow -->
           </div>
           <template #overlay>
-            <a-menu class="user-dropdown-menu">
-              <a-menu-item key="logout" @click="handleLogout">
-                <span class="logout-icon">🚪</span>退出
+            <a-menu @click="handleMenuClick">
+              <a-menu-item key="profile">
+                <template #icon>
+                  <UserOutlined/>
+                </template>
+                个人中心
+              </a-menu-item>
+              <a-menu-divider/>
+              <a-menu-item key="logout">
+                <template #icon>
+                  <LogoutOutlined/>
+                </template>
+                退出登录
               </a-menu-item>
             </a-menu>
           </template>
         </a-dropdown>
       </div>
-    </header>
-    <main class="ig-main">
-      <section class="ig-controls">
-        <div class="ig-card">
-          <div class="ig-card-title">参数设置</div>
-          <div class="ig-form-row">
-            <label>图片风格</label>
-            <a-select v-model:value="selectedStyle"
-                      class="ig-select">
-              <a-select-option
-                  v-for="style in imageStyles"
-                  :key="style.label"
-                  :value="style.label">
-                                <span
-                                    class="style-icon">{{ style.icon }}</span>
-                {{ style.label }}
-              </a-select-option>
-            </a-select>
-          </div>
+    </a-layout-header>
 
-          <div class="ig-form-row">
-            <label>图片比例</label>
-            <a-select v-model:value="selectedRatio"
-                      class="ig-select"
-                      @change="handleRatioChange">
-              <a-select-option
-                  v-for="ratio in imageRatios"
-                  :key="ratio.value"
-                  :value="ratio.value">
-                {{ ratio.label }}
-              </a-select-option>
-              <a-select-option key="custom"
-                               value="custom">自定义
-              </a-select-option>
-            </a-select>
-            <div v-if="isCustomRatio"
-                 class="ig-custom-ratio">
-              <input type="number" v-model="customWidth"
-                     min="1" placeholder="宽度"
-                     class="ig-input-short"/>
-              <span class="ig-ratio-sep">*</span>
-              <input type="number"
-                     v-model="customHeight" min="1"
-                     placeholder="高度"
-                     class="ig-input-short"/>
-              <button class="ig-btn ig-btn-mini"
-                      @click="applyCustomRatio"
-                      :disabled="!isValidCustomRatio">应用
-              </button>
-              <span v-if="customRatioError"
-                    class="ig-error">{{ customRatioError }}</span>
+    <!-- 主内容区 (包含侧边栏和图片区) -->
+    <a-layout class="main-content-layout">
+      <!-- 左侧参数栏 -->
+      <a-layout-sider
+          width="320"
+          theme="light"
+          class="parameter-sider"
+          :collapsed="siderCollapsed"
+          collapsible
+          breakpoint="lg"
+          :collapsed-width="siderCollapsedWidth"
+          :trigger="siderCollapsedWidth === 0 && siderCollapsed ? null : undefined"
+      >
+        <div class="sider-content" v-if="!siderCollapsed || siderCollapsedWidth !== 0">
+          <a-typography-title :level="5" class="sider-title">
+            <span class="sider-title-icon">🎨</span> 参数设置
+          </a-typography-title>
+
+          <a-form layout="vertical" :model="params" class="sider-form">
+            <a-form-item label="核心提示词 (Prompt)" class="form-label-strong">
+
+              <div class="prompt-input-container">
+                <a-textarea
+                    v-model:value="params.prompt"
+                    placeholder="输入图像描述，例如：一只戴着墨镜的可爱猫咪，写实风格"
+                    :rows="5"
+                    :disabled="isLoading"
+                    show-count
+                    :maxlength="1000"
+                    class="custom-textarea"
+                />
+                <div class="prompt-buttons">
+                  <a-button type="primary" :loading="rewrite" @click="rewritePrompt" class="enhance-button">提示词增强
+                  </a-button>
+
+                </div>
+              </div>
+            </a-form-item>
+
+            <a-divider class="custom-divider"/>
+
+            <a-form-item label="图像比例 (Aspect Ratio)" class="form-label-strong">
+              <a-radio-group v-model:value="params.aspectRatio" button-style="solid" :disabled="isLoading"
+                             class="ratio-group" @change="onRatioChange">
+                <a-tooltip title="方形 (1:1)">
+                  <a-radio-button value="1:1">
+                    <IconSquare/>
+                  </a-radio-button>
+                </a-tooltip>
+                <a-tooltip title="宽屏 (16:9)">
+                  <a-radio-button value="16:9">
+                    <IconRectangleWide/>
+                  </a-radio-button>
+                </a-tooltip>
+                <a-tooltip title="竖屏 (9:16)">
+                  <a-radio-button value="9:16">
+                    <IconRectangle/>
+                  </a-radio-button>
+                </a-tooltip>
+                <a-tooltip title="标准 (4:3)">
+                  <a-radio-button value="4:3">
+                    <Icon4x3/>
+                  </a-radio-button>
+                </a-tooltip>
+                <a-tooltip title="竖向标准 (3:4)">
+                  <a-radio-button value="3:4">
+                    <Icon3x4/>
+                  </a-radio-button>
+                </a-tooltip>
+                <a-tooltip title="自定义比例">
+                  <a-radio-button value="custom" @click="showCustomRatioInput = true">
+                    <IconEdit/>
+                  </a-radio-button>
+                </a-tooltip>
+              </a-radio-group>
+
+              <!-- 自定义比例输入区域 -->
+              <div v-if="showCustomRatioInput" class="custom-ratio-container">
+                <div class="custom-ratio-inputs">
+                  <a-input-number
+                      v-model:value="customWidth"
+                      :min="1"
+                      :max="4096"
+                      :disabled="isLoading"
+                      placeholder="宽度"
+                      class="custom-dimension-input"
+                  />
+                  <span class="dimension-separator">×</span>
+                  <a-input-number
+                      v-model:value="customHeight"
+                      :min="1"
+                      :max="4096"
+                      :disabled="isLoading"
+                      placeholder="高度"
+                      class="custom-dimension-input"
+                  />
+                </div>
+                <a-button
+                    type="primary"
+                    @click="applyCustomRatio"
+                    :disabled="isLoading || !isCustomRatioValid"
+                    class="apply-ratio-button"
+                >
+                  应用
+                </a-button>
+              </div>
+            </a-form-item>
+
+
+            <a-divider class="custom-divider"/>
+
+            <a-form-item>
+              <a-button
+                  type="primary"
+                  @click="handleGenerate"
+                  :loading="isLoading"
+                  block
+                  size="large"
+                  class="generate-button gradient-btn"
+              >
+                <template #icon>
+                  <ThunderboltOutlined/>
+                </template>
+                立即生成
+              </a-button>
+            </a-form-item>
+          </a-form>
+
+          <!--          <a-alert v-if="error" :message="error" type="error" show-icon closable @close="error = null" class="error-alert"/>-->
+        </div>
+        <!-- Optional: Show an icon or button to expand when collapsed to 0 -->
+        <!-- <div v-else class="collapsed-placeholder"></div> -->
+      </a-layout-sider>
+
+      <!-- 右侧图片展示区 -->
+      <a-layout-content class="image-content-area">
+        <a-spin :spinning="isLoading" tip="生成图像中，请稍候..." size="large" wrapperClassName="spin-wrapper">
+          <div class="image-display-container" :class="{ 'has-image': !!generatedImageUrl }">
+            <a-image
+                v-if="generatedImageUrl"
+                :src="generatedImageUrl"
+                alt="生成的图片"
+                class="generated-image"
+                :preview="{ visible: false }"
+                @click="previewVisible = true"
+            />
+            <div v-else class="placeholder">
+              <PictureOutlined class="placeholder-icon"/>
+              <p>您的图像将在此呈现</p>
+              <span>请在左侧输入描述并设置参数</span>
             </div>
           </div>
-          <div class="ig-form-row">
-            <label>提示词</label>
-            <a-textarea v-model:value="prompt"  placeholder="请输入提示词" show-count :maxlength="200" />
-           
-             
-          </div>
-          <div class="ig-actions">
-            <button class="ig-btn ig-btn-primary"
-                    @click="generateImages"
-                    :disabled="isGenerating">
-                            <span v-if="isGenerating"
-                                  class="ig-spinner"></span>
-              {{ isGenerating ? '生成中...' : '生成图片' }}
-            </button>
-            <button class="ig-btn ig-btn-secondary"
-                    @click="clearForm"
-                    :disabled="isGenerating">清除
-            </button>
-          </div>
-        </div>
-      </section>
-      <section class="ig-results">
+        </a-spin>
+      </a-layout-content>
+    </a-layout>
 
-        <div v-for="(image, index) in generatedImages" :key="index">
-          <a-image :src="image.url"
-                   :preview="true"
-          >
-
-          </a-image>
-        </div>
-
-      </section>
-    </main>
-  </div>
+    <!-- 单独的图片预览 Modal -->
+    <a-image
+        :preview="{
+          visible: previewVisible,
+          onVisibleChange: setPreviewVisible,
+          src: generatedImageUrl || undefined,
+        }"
+        style="display: none;"
+    />
+  </a-layout>
 </template>
 
 <script setup lang="ts">
-import {ref,  computed, onWatcherCleanup, watch, onMounted} from 'vue'
-import {useRouter} from 'vue-router'
-
+import {ref, reactive, computed} from 'vue'; // Added watch
+import {
+  PictureOutlined,
+  ThunderboltOutlined,
+  LogoutOutlined,      // <-- Added
+  UserOutlined,        // <-- Added
+  DownOutlined,        // <-- Added
+} from '@ant-design/icons-vue';
 import {
   message,
-  Select as ASelect,
-  SelectOption as ASelectOption,
+  Modal,
   Dropdown as ADropdown,
   Menu as AMenu,
-  MenuItem as AMenuItem
-} from 'ant-design-vue'
-import type {SelectProps} from 'ant-design-vue/es/select'
+  MenuItem as AMenuItem,
+  MenuDivider as AMenuDivider
+} from 'ant-design-vue'; // Added Dropdown, Menu...
+import type {MenuInfo} from 'ant-design-vue/lib/menu/src/interface'; // Type for menu click
+import {useRouter} from 'vue-router'
 
-import {generatorImg} from '@/api/generator.ts'
-import type {AxiosResponse} from "axios"
-import type {IApiResponse} from "@/interface/IApiResponse.ts"
-
-import {ElMessage} from "element-plus"
-import {jwtDecode} from "jwt-decode"
-
-defineOptions({name: 'AXSenderBasicSetup'})
-const [messageApi,  ] = message.useMessage()
-// let value = ref('') 
-const loading = ref<boolean>(false)
-watch(loading, () => {
-  if (loading.value) {
-    const timer = setTimeout(() => {
-      loading.value = false
-      messageApi.success('Send message successfully!')
-    }, 3000)
-    onWatcherCleanup(() => {
-      clearTimeout(timer)
-    })
-  }
-})
 const router = useRouter()
 
-// 用户信息
-const userName = ref('')
 
-// 获取用户信息
-const getUserInfo = () => {
-  const token = localStorage.getItem("Authorization")
-  if (token) {
-    try {
-      const decoded: any = jwtDecode(token)
-      if (decoded) {
-        // 优先使用 userName，如果不存在则使用 userId
-        if (decoded.userName) {
-          userName.value = decoded.userName
-        } else if (decoded.userId) {
-          userName.value = `用户${decoded.userId}`
-        } else {
-          userName.value = '用户'
-        }
-      }
-    } catch (error) {
-      console.error("解析 JWT 失败:", error)
-      userName.value = '用户'
-    }
-  }
-}
+import {h} from 'vue'; // Ensure h is imported if used for placeholders
+const IconSquare = () => h('span', '1:1');
+const IconRectangleWide = () => h('span', '16:9');
+const IconRectangle = () => h('span', '9:16');
+const Icon4x3 = () => h('span', '4:3');
+const Icon3x4 = () => h('span', '3:4');
+const IconEdit = () => h('span', '自定义'); // Added Custom Icon
 
-// 组件挂载时获取用户信息
-onMounted(() => {
-  getUserInfo()
+const currentUser = ref({
+  name: '',
+});
 
+const rewrite = ref<boolean>(false)
 
+const params = reactive({
+  prompt: '',
+  aspectRatio: '1:1',
 
-})
+});
 
-// 退出登录
-const handleLogout = () => {
-  router.push('/login')
-  localStorage.removeItem('Authorization')
-  userName.value = ''
-}
+// 自定义比例相关变量
+const showCustomRatioInput = ref<boolean>(false); // 控制自定义输入框显示
+const customWidth = ref<number | null>(1024);
+const customHeight = ref<number | null>(1024);
 
-// 图片风格选项
-const imageStyles = [
-  {label: '写实风', value: 'realistic', icon: '🏞️'},
-  {label: '漫画风', value: 'comic', icon: '💫'},
-  {label: '可爱风', value: 'cute', icon: '🌸'},
-  {label: '卡通风', value: 'cartoon', icon: '🎨'},
-  {label: '抽象风', value: 'abstract', icon: '🎭'}
-]
-
-// 图片格式选项
-// const imageFormats = [
-//     { label: 'JPG', value: 'jpg' },
-//     { label: 'PNG', value: 'png' },
-//     { label: 'WEBP', value: 'webp' }
-// ]
-
-// 图片比例选项
-const imageRatios = [
-  {label: '原图比例', value: 'original'}, // 增加原图比例
-  {label: '1:1 (方形)', value: '1:1'},    // 增加描述
-  {label: '4:3 (标准横屏)', value: '4:3'},
-  {label: '3:4 (标准竖屏)', value: '3:4'},
-  {label: '16:9 (宽屏)', value: '16:9'},
-  {label: '9:16 (竖屏)', value: '9:16'},
-  {label: '3:2 (照片横屏)', value: '3:2'}, // 根据需要增加
-  {label: '2:3 (照片竖屏)', value: '2:3'}, // 根据需要增加
-];
-
-
-// 响应式状态
-const prompt = ref('')
-const selectedTags = ref<string[]>([])
-const selectedStyle = ref('modern')
-const selectedFormat = ref('png')
-const selectedRatio = ref('1024*1024')
-const isGenerating = ref(false)
-const generatedImages = ref<Array<{ url: string, approved: boolean }>>([])
-
-// 自定义比例相关状态
-const isCustomRatio = ref(false)
-const customWidth = ref<number | null>(null)
-const customHeight = ref<number | null>(null)
-const customRatioError = ref('')
-
-
-// 获取风格标签
-// const getStyleLabel = (styleValue: string) => {
-//     const style = imageStyles.find(s => s.label === styleValue)
-//     return style ? style.label : ''
-// }
-
-
-// 完整提示词计算属性
-// const fullPrompt = computed(() => {
-//   const stylePrefix = selectedStyle.value === '写实风' ? '' : `${getStyleLabel(selectedStyle.value)}，`
-//   const tagsSuffix = selectedTags.value.length > 0 ? `，${selectedTags.value.join('，')}` : ''
-//   return `${stylePrefix}${prompt.value}${tagsSuffix}`
-// })
-
-// 验证自定义比例
-const isValidCustomRatio = computed(() => {
-  if (!customWidth.value || !customHeight.value) {
-    return false
-  }
-
-  if (customWidth.value <= 0 || customHeight.value <= 0) {
-    customRatioError.value = '宽度和高度必须大于0'
-    return false
-  }
-
-  customRatioError.value = ''
-  return true
-})
+// 判断自定义比例是否有效
+const isCustomRatioValid = computed(() => {
+  return customWidth.value && customHeight.value &&
+      customWidth.value > 0 && customHeight.value > 0;
+});
 
 // 应用自定义比例
 const applyCustomRatio = () => {
-  if (isValidCustomRatio.value) {
-    selectedRatio.value = `${customWidth.value}*${customHeight.value}`
+  if (!isCustomRatioValid.value) {
+    message.warning('请输入有效的宽度和高度！');
+    return;
+  }
+  // 设置比例为自定义格式 "宽*高"
+  params.aspectRatio = `${customWidth.value}*${customHeight.value}`;
+
+  message.success(`已应用自定义比例 ${customWidth.value}*${customHeight.value}`);
+  params.aspectRatio = `${customWidth.value}*${customHeight.value}`;
+};
+
+const isLoading = ref<boolean>(false);
+const generatedImageUrl = ref<string | null>(null);
+const error = ref<string | null>(null);
+const siderCollapsed = ref<boolean>(false);
+const previewVisible = ref<boolean>(false);
+const isMobile = ref(window.innerWidth < 992);
+
+
+const siderCollapsedWidth = computed(() => isMobile.value ? 0 : 80);
+
+// --- 方法 ---
+
+// Update isMobile on resize
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth < 992; // Match breakpoint="lg"
+};
+
+// Add/Remove resize listener
+import {onMounted, onUnmounted, watch} from 'vue'; // Added watch here as well if not already present
+import {jwtDecode} from 'jwt-decode';
+
+
+/**
+ * prompt rewrite
+ */
+async function rewritePrompt() {
+
+  try {
+    rewrite.value = true
+    const response: AxiosResponse<IApiResponse> = await promptRewrite({
+      prompt: params.prompt
+    });
+
+    const {
+      data: {successful, resultHint, resultValue},
+    } = response;
+    if (!successful) message.error(resultHint);
+    params.prompt = resultValue
+
+
+  } catch (err) {
+    console.log(err);
+
+  } finally {
+    rewrite.value = false
   }
 }
 
-// 生成图片
-const generateImages = async () => {
-  if (!prompt.value.trim()) {
-    ElMessage({
-      message: "提示词不能为空，请输入有效内容。",
-      type: 'error',
-    })
-    return
-  }
-  const loginfo = localStorage.getItem("Authorization")
+
+onMounted(() => {
+  const loginfo = localStorage.getItem("Authorization");
   if (loginfo) {
-    try {
-      const token: { userId: string } = jwtDecode(loginfo)
-      if (token) {
-
-        try {
+    const token = jwtDecode(loginfo);
+    const userName = (token as { userName: string }).userName;
+    currentUser.value.name = userName;
 
 
-          isGenerating.value = true
-          const response: AxiosResponse<IApiResponse> = await generatorImg({
-            prompt: prompt.value,
-            style: selectedStyle.value,
-            size: selectedRatio.value,
-          })
-
-          const {
-            data: {successful, resultHint, resultValue},
-          } = response
-          if (!successful) return ElMessage({
-            message: resultHint,
-            type: 'error',
-          })
-          if (!resultValue) return ElMessage({
-            message: "您已经达到Free限额",
-            type: 'error',
-          })
-
-          ElMessage({
-            message: "生成成功！",
-            type: 'success',
-          })
-          generatedImages.value = [
-            {
-              url: resultValue,
-              approved: true
-            }
-          ]
+  }
+  window.addEventListener('resize', updateIsMobile);
+  updateIsMobile(); // Initial check
+});
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIsMobile);
+});
 
 
+// Watch for changes in isMobile to potentially force collapse state if needed
+watch(isMobile, (newVal) => {
 
-        } catch (err) {
-          console.log(err)
-        } finally {
-          isGenerating.value = false
-        }
-      }
-    } catch (error) {
-      console.error("JWT 解码失败:", error)
-    }
+  if (newVal && !siderCollapsed.value) {
+
+  }
+  console.log("isMobile changed:", newVal, "Collapsed Width:", siderCollapsedWidth.value);
+});
+
+// 当预设比例变化时，隐藏自定义输入框
+const onRatioChange = (e: any) => {
+  if (e.target.value !== 'custom') {
+    showCustomRatioInput.value = false;
+  }
+};
+
+const setPreviewVisible = (value: boolean): void => {
+  previewVisible.value = value;
+};
+
+import type {AxiosResponse} from "axios";
+import type {IApiResponse} from '@/interface/IApiResponse.ts'
+import {generatorImg, promptRewrite} from "@/api/generator";
+
+
+/**
+ * generate image
+ */
+const handleGenerate = async () => {
+  if (!params.prompt.trim()) {
+    message.warning('请输入提示词！');
+    return;
+  }
+  isLoading.value = true;
+  generatedImageUrl.value = null;
+  error.value = null;
+  previewVisible.value = false;
+  try {
+    isLoading.value = true
+    const response: AxiosResponse<IApiResponse> = await generatorImg({
+      ...params
+    });
+
+    const {
+      data: {successful, resultHint, resultValue},
+    } = response;
+    if (!successful) message.error(resultHint);
+    generatedImageUrl.value = resultValue
+
+
+  } catch (err) {
+    console.log(err);
+
+  } finally {
+    isLoading.value = false
   }
 
+};
 
-}
+// --- Menu Click Handler ---
+const handleMenuClick = (e: MenuInfo) => {
 
-// 清除表单
-const clearForm = () => {
-  prompt.value = ''
-  selectedTags.value = []
-  selectedStyle.value = '写实风'
-  selectedFormat.value = 'jpg'
-  selectedRatio.value = '1:1'
-  generatedImages.value = []
-}
+  switch (e.key) {
+    case 'profile':
+      // Navigate to profile page or show profile modal
+      message.info('待实现)');
+      break;
+    case 'logout':
+      // Perform logout logic
+      Modal.confirm({
+        title: '确认退出?',
+        content: '您确定要退出登录吗？',
+        okText: '确认退出',
+        cancelText: '取消',
+        async onOk() {
+          localStorage.removeItem('Authorization');
+          await router.push('/login');
+        },
 
-
-// // 生成新的一批图片
-// const regenerateBatch = () => {
-//     generateImages()
-// }
-
-// // 调整提示词
-// const refinePrompt = () => {
-//     // 可以在这里打开提示词编辑面板或添加其他交互
-//     const newPrompt = prompt.value + ' (已优化)'
-//     prompt.value = newPrompt
-//     generateImages()
-// }
-
-// Handle ratio selection from dropdown
-const handleRatioChange: SelectProps['onChange'] = (value) => {
-  const selectedValue = String(value)
-  if (selectedValue === 'custom') {
-    isCustomRatio.value = true
-    if (!customWidth.value || !customHeight.value) {
-      // Set default custom values if not already set
-      customWidth.value = 16
-      customHeight.value = 9
-    }
-    // Update selectedRatio when custom is chosen and inputs are valid
-    if (isValidCustomRatio.value) {
-      selectedRatio.value = `${customWidth.value}:${customHeight.value}`
-    }
-  } else {
-    isCustomRatio.value = false
-    selectedRatio.value = selectedValue
+        onCancel() {
+          console.log('取消退出');
+        },
+      });
+      break;
   }
-}
+};
+
 </script>
 
-<style scoped>
-.ig-root {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  background-image: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 75%),
-  radial-gradient(circle at 85% 80%, rgba(34, 211, 238, 0.10) 0%, transparent 65%);
-  color: #f1f5f9;
-  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
+
+<style lang="scss" scoped>
+
+$primary-color: #1890ff;
+$header-height: 64px;
+$sider-width: 320px;
+$sider-bg: #ffffff;
+$content-bg: #f0f2f5;
+$border-color: #e8e8e8;
+$text-color: rgba(0, 0, 0, 0.85);
+$text-color-secondary: rgba(0, 0, 0, 0.45);
+$placeholder-bg: #fafafa;
+
+// --- 整体布局 ---
+.app-layout {
+  height: 100vh;
+  overflow: hidden; // Prevent top-level scrollbar
+  background-color: $content-bg;
 }
 
-.ig-header {
+// --- 顶部导航栏 ---
+.app-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 72px;
-  padding: 0 48px;
-  background: rgba(15, 23, 42, 0.98);
-  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.25);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.25);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: 100;
-  backdrop-filter: blur(14px);
-  transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
-}
-
-.ig-logo {
-  font-size: 2.2rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6, #22d3ee);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 2.5px;
-  text-shadow: 0 0 18px rgba(59, 130, 246, 0.35);
-}
-
-.ig-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f8fafc;
-  letter-spacing: 1.5px;
-  text-shadow: 0 1px 8px rgba(59, 130, 246, 0.08);
-}
-
-.ig-user-section {
-  display: flex;
   align-items: center;
-  gap: 18px;
-}
-
-.ig-user-name {
-  display: flex;
-  align-items: center;
-  background: rgba(59, 130, 246, 0.13);
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-size: 1.05rem;
-  color: #f8fafc;
-  font-weight: 600;
-  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
-  box-shadow: 0 0 18px rgba(59, 130, 246, 0.18);
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  cursor: pointer;
-}
-
-.ig-user-name:hover {
-  background: rgba(59, 130, 246, 0.18);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 4px 24px rgba(59, 130, 246, 0.22);
-}
-
-.user-icon {
-  margin-right: 10px;
-  font-size: 1.2rem;
-  color: #38bdf8;
-}
-
-.dropdown-icon {
-  margin-left: 10px;
-  font-size: 0.8rem;
-  color: #94a3b8;
-  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
-}
-
-.ig-user-name:hover .dropdown-icon {
-  color: #3b82f6;
-}
-
-.user-dropdown-menu {
-  background: rgba(15, 23, 42, 0.98) !important;
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-}
-
-:deep(.ant-dropdown-menu-item) {
-  background: transparent !important;
-  color: #f8fafc !important;
-  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
-  padding: 12px 20px;
-  font-size: 1rem;
-}
-
-:deep(.ant-dropdown-menu-item:hover) {
-  background: rgba(244, 63, 94, 0.13) !important;
-  color: #f43f5e !important;
-}
-
-.logout-icon {
-  margin-right: 10px;
-  font-size: 1.2rem;
-}
-
-.ig-main {
-  display: flex;
-  gap: 48px;
-  padding: 48px 56px 0 56px;
-  min-height: calc(100vh - 72px);
-  margin-top: 72px;
-  height: calc(100vh - 72px);
-  overflow: hidden;
-  background: rgba(15, 23, 42, 0.98);
-  align-items: stretch;
-}
-
-.ig-controls {
-  flex: 0 0 360px;
-  max-width: 360px;
-  transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
-  height: 100%;
-}
-
-.ig-card {
-  background: rgba(30, 41, 59, 0.96);
-  border-radius: 24px;
-  box-shadow: 0 10px 36px 0 rgba(0, 0, 0, 0.32);
-  padding: 36px 32px 28px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  border: 1.5px solid rgba(59, 130, 246, 0.22);
-  backdrop-filter: blur(14px);
-  transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
-  animation: cardFadeIn 0.5s cubic-bezier(.4, 0, .2, 1);
-  height: 100%;
-}
-
-@keyframes cardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.ig-card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #38bdf8;
-  margin-bottom: 14px;
-  letter-spacing: 1.2px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1.5px solid rgba(59, 130, 246, 0.13);
-  padding-bottom: 18px;
-}
-
-.ig-card-title::before {
-  content: '✨';
-  margin-right: 10px;
-  font-size: 1.2rem;
-}
-
-.ig-form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-  animation: fadeIn 0.3s cubic-bezier(.4, 0, .2, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.ig-form-row label {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #a5b4fc;
-  margin-bottom: 6px;
-}
- :deep(.ant-input-textarea-show-count::after){
-   color: white;
- }  
-.ig-select {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.7);
-  color: #f1f5f9;
-  border: 1.5px solid rgba(59, 130, 246, 0.22);
-  border-radius: 12px;
-  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.ig-select:hover {
-  border-color: rgba(59, 130, 246, 0.45);
-  box-shadow: 0 0 0 2.5px rgba(59, 130, 246, 0.13);
-}
-
-.ig-custom-ratio {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 12px;
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 12px;
-  border: 1.5px solid rgba(59, 130, 246, 0.13);
-}
-
-.ig-input-short {
-  width: 70px;
-  padding: 10px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1.5px solid rgba(59, 130, 246, 0.22);
-  border-radius: 10px;
-  color: #f1f5f9;
-  text-align: center;
-  font-size: 1rem;
-  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
-}
-
-.ig-input-short:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2.5px rgba(59, 130, 246, 0.18);
-  outline: none;
-}
-
-.ig-ratio-sep {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: #3b82f6;
-}
-
-.ig-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 14px;
-}
-
-.ig-btn {
-  padding: 12px 22px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  color: #111;
-}
-
-.ig-btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: #fff;
-  border: none;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.ig-btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-}
-
-.ig-btn-primary:disabled {
-  background: linear-gradient(135deg, #64748b, #475569);
-  color: #cbd5e1;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.ig-btn-secondary {
-  background: transparent;
-  color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-}
-
-.ig-btn-secondary:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-}
-
-.ig-btn-secondary:disabled {
-  border-color: rgba(148, 163, 184, 0.2);
-  color: #64748b;
-  cursor: not-allowed;
-}
-
-.ig-btn-mini {
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border-radius: 8px;
-}
-
-.ig-btn-link {
-  background: transparent;
-  color: #3b82f6;
-  border: none;
-  text-decoration: none;
-  padding: 4px 8px;
-  font-size: 0.9rem;
-}
-
-.ig-btn-link:hover {
-  color: #2563eb;
-  background: rgba(59, 130, 246, 0.05);
-  border-radius: 6px;
-}
-
-.ig-btn-confirm {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  border: none;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-
-.ig-btn-confirm:hover {
-  background: linear-gradient(135deg, #059669, #047857);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-}
-
-.ig-btn-confirm:disabled {
-  background: linear-gradient(135deg, #0f766e, #0d9488);
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.ig-error {
-  color: #f43f5e;
-  font-size: 0.85rem;
-  margin-top: 4px;
-}
-
-.ig-results {
-  flex: 1;
-  position: relative;
-  padding: 0px 0 40px;
-  transition: all 0.3s ease;
-  overflow-y: hidden;
-  height: 100%;
-}
-
-.ig-sender {
-  --ax-sender-bg: rgba(15, 23, 42, 0.6);
-  --ax-sender-border-color: rgba(59, 130, 246, 0.2);
-  --ax-sender-placeholder-color: #ffffff;
-  --ax-sender-text-color: #f8fafc;
-  --ax-sender-border-radius: 10px;
-  --ax-sender-focusable-border-color: #3b82f6;
-  --ax-sender-focusable-shadow-color: rgba(59, 130, 246, 0.2);
-  --ax-sender-submit-button-bg: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  --ax-sender-submit-button-color: #ffffff;
-  --ax-sender-submit-button-hover-bg: linear-gradient(135deg, #2563eb, #1e40af);
-  width: 100%;
-}
-
-.ig-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  color: #94a3b8;
-  border: 2px dashed rgba(59, 130, 246, 0.2);
-  border-radius: 20px;
-  margin-top: 20px;
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(5px);
-  animation: fadeIn 0.5s ease-out;
-}
-
-:deep(.ant-sender .ant-sender-input::placeholder) {
-  color: white;
-}
-
-:deep(.ant-sender .ant-sender-input) {
-  color: white;
-}
-
-.ig-empty-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-  opacity: 0.7;
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-.ig-loading {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+  padding: 0 24px;
+  height: $header-height;
+  line-height: $header-height;
+  box-shadow: 0 4px 12px rgba(0, 21, 41, 0.06);
   z-index: 10;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.ig-loader {
-  border: 4px solid rgba(59, 130, 246, 0.1);
-  border-top: 4px solid #3b82f6;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.ig-spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.ig-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Slightly smaller min width */
-  gap: 20px; /* Slightly smaller gap */
-  margin-top: 20px;
-
-  animation: fadeIn 0.5s ease-out;
-}
-
-.ig-img-card {
-  background: rgba(30, 41, 59, 0.85);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  transform: translateY(0);
-  animation: cardFadeIn 0.5s ease-out;
-  animation-fill-mode: both;
-  display: flex; /* Use flexbox for centering */
-  justify-content: center;
-  align-items: center;
-  aspect-ratio: 1 / 1; /* Maintain square aspect ratio, adjust as needed */
-}
-
-.ig-img-card:hover {
-  transform: translateY(-6px) scale(1.03); /* Adjusted hover effect */
-  box-shadow: 0 10px 25px 0 rgba(59, 130, 246, 0.25); /* Brighter shadow on hover */
-  border-color: rgba(59, 130, 246, 0.4);
-}
-
-.ig-image-item {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensure image covers the card area */
-  transition: transform 0.3s ease;
-}
-
-.ig-img-card:hover .ig-image-item {
-  transform: scale(1.05); /* Slight zoom on image hover */
-}
-
-.ig-img-wrap {
   position: relative;
-  overflow: hidden;
-}
+  transition: all 0.3s ease;
 
-.ig-img-wrap img {
-  width: 100%;
-  display: block;
-  aspect-ratio: 1;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.ig-img-wrap:hover img {
-  transform: scale(1.05);
-}
-
-.ig-img-style {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(15, 23, 42, 0.8);
-  padding: 6px 12px;
-  border-radius: 100px;
-  font-size: 0.85rem;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: #e2e8f0;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.ig-img-actions {
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.ig-batch-actions {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  padding: 16px;
-  background: rgba(30, 41, 59, 0.6);
-  border-radius: 16px;
-  border: 1px solid rgba(59, 130, 246, 0.1);
-  animation: fadeIn 0.5s ease-out;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s, transform 0.3s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.style-icon {
-  margin-right: 6px;
-}
-
-/* 响应式布局适配 */
-@media (max-width: 1200px) {
-  .ig-main {
-    gap: 30px;
-    padding: 30px 30px 0 30px;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(24, 144, 255, 0.1), rgba(24, 144, 255, 0.3), rgba(24, 144, 255, 0.1));
   }
 
-  .ig-controls {
-    flex: 0 0 320px;
-    max-width: 320px;
-  }
-
-  .ig-card {
-    padding: 25px 22px 20px 22px;
-  }
-}
-
-@media (max-width: 900px) {
-  .ig-main {
-    flex-direction: column;
-    padding: 24px 24px 0 24px;
-    overflow-y: auto;
-  }
-
-  .ig-controls {
-    flex: 0 0 auto;
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .ig-card {
-    padding: 24px 20px 20px 20px;
-    margin-bottom: 24px;
-  }
-
-  .ig-results {
-    padding-bottom: 80px;
-  }
-
-  .ig-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-  }
-
-  .ig-batch-actions {
-    position: sticky;
-    bottom: 20px;
-    z-index: 50;
-    margin-top: 20px;
-  }
-}
-
-@media (max-width: 600px) {
-  .ig-header {
-    padding: 0 20px;
-    height: auto;
-    flex-wrap: wrap;
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-
-  .ig-logo {
-    font-size: 1.5rem;
-    width: 50%;
-  }
-
-  .ig-title {
-    display: none;
-  }
-
-  .ig-user-section {
-    width: 50%;
-    justify-content: flex-end;
-  }
-
-  .ig-user-name {
-    font-size: 0.8rem;
-    padding: 6px 10px;
-  }
-
-  .ig-logout {
-    padding: 6px 10px;
-    font-size: 0.8rem;
-  }
-
-  .ig-main {
-    padding: 16px 16px 0 16px;
-    margin-top: 64px;
-    height: calc(100% - 64px);
-  }
-
-  .ig-card {
-    border-radius: 16px;
-    padding: 20px 16px 16px 16px;
-    margin-bottom: 16px;
-  }
-
-  .ig-card-title {
-    font-size: 1.1rem;
-  }
-
-  .ig-form-row {
-    margin-bottom: 16px;
-  }
-
-  .ig-btn {
-    padding: 8px 14px;
-    font-size: 0.9rem;
-  }
-
-  .ig-gallery {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .ig-batch-actions {
-    flex-direction: column;
+  .logo {
+    // Styles remain the same
+    display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+
+    img {
+      height: 32px;
+    }
+
+    span {
+      font-size: 18px;
+      font-weight: 600;
+      color: $text-color;
+    }
   }
 
-  .ig-btn-link {
-    width: 100%;
-    padding: 8px 0;
-    text-align: center;
+  .user-info {
+    .user-avatar-name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+
+      &:hover {
+        background-color: rgba(24, 144, 255, 0.04);
+        border-color: rgba(24, 144, 255, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .ant-avatar {
+        transition: transform 0.3s ease;
+        border: 2px solid transparent;
+
+        &:hover {
+          transform: scale(1.05);
+          border-color: rgba(24, 144, 255, 0.2);
+        }
+      }
+    }
+
+    .user-name {
+      color: $text-color;
+      font-weight: 600;
+      font-size: 15px;
+      background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      // Responsive: Hide name on very small screens
+      @media (max-width: 576px) {
+        display: none;
+      }
+    }
+
+    .dropdown-arrow {
+      font-size: 12px;
+      color: #1890ff;
+      margin-left: 6px;
+      transition: transform 0.3s ease;
+
+      .user-avatar-name:hover & {
+        transform: translateY(2px);
+      }
+    }
   }
 
-  .ig-empty {
-    height: 300px;
-  }
-
-  .ig-custom-ratio {
-    flex-wrap: wrap;
-  }
-
-  .ig-actions {
-    flex-direction: column;
+  // Responsive header padding
+  @media (max-width: 768px) {
+    padding: 0 16px;
   }
 }
 
-@media (max-width: 375px) {
-  .ig-header {
-    padding: 8px 12px;
+// --- 主内容区布局 ---
+.main-content-layout {
+  // margin-top: $header-height; // No margin needed if header isn't fixed
+  height: calc(100vh - #{$header-height}); // Correct height calculation
+  overflow: hidden; // Prevent this layout from scrolling
+}
+
+// --- 左侧参数栏 ---
+.parameter-sider {
+  background: $sider-bg;
+  height: 100%;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f8fafc 0%, #e6f0ff 100%);
+
+  .sider-content {
+    padding: 28px 18px 18px 18px;
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0ff 100%);
+    border-radius: 0 12px 12px 0;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.06);
+
+    .sider-title {
+      margin-bottom: 24px;
+      font-size: 20px;
+      font-weight: 700;
+      color: $primary-color;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .sider-title-icon {
+        font-size: 22px;
+        margin-right: 4px;
+      }
+    }
+
+    .sider-form {
+      .form-label-strong {
+        .ant-form-item-label > label {
+          font-weight: 600;
+          color: $text-color;
+          font-size: 15px;
+        }
+      }
+
+      .prompt-input-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .prompt-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .enhance-button {
+
+        border: none;
+        transition: all 0.2s;
+
+        &:hover {
+
+          transform: translateY(-1px);
+          box-shadow: 0 2px 6px rgba(19, 194, 194, 0.2);
+        }
+      }
+
+      .custom-textarea {
+        border-radius: 10px; // 更圆润的边角
+        font-size: 15px;
+
+        background: #ffffff; // 纯白背景
+        border: 1px solid #d9e2f0; // 稍深的边框
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); // 添加细微阴影
+        transition: border-color 0.3s ease, box-shadow 0.3s ease; // 平滑过渡
+        &:focus-within {
+          border-color: $primary-color;
+          box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2); // 添加聚焦光晕效果
+        }
+      }
+
+      .custom-input-number {
+        border-radius: 8px;
+        background: #f7faff;
+        border: 1px solid #dbeafe;
+        font-size: 15px;
+        padding: 2px 8px;
+
+        &:focus-within {
+          border-color: $primary-color;
+        }
+      }
+
+      .ratio-group {
+        margin-top: 2px;
+        margin-bottom: 12px; // 为自定义比例区域留出空间
+        display: flex; // Added for flex layout
+        flex-wrap: wrap; // Allow wrapping on smaller screens
+        gap: 6px; // Add gap between buttons horizontally and vertically when wrapped
+
+        .ant-radio-button-wrapper {
+          border-radius: 6px !important;
+          margin-right: 0; // Remove right margin, use gap instead
+          // margin-bottom: 6px; // Add bottom margin for wrapped items (gap handles this now)
+          font-size: 14px;
+          padding: 0 14px;
+          background: #f0f7ff;
+          border: 1px solid #b6d4fe;
+          transition: all 0.2s;
+
+          &:hover, &.ant-radio-button-wrapper-checked {
+            background: $primary-color;
+            color: #fff;
+            border-color: $primary-color;
+          }
+        }
+      }
+
+      // 自定义比例区域样式
+      .custom-ratio-container {
+        margin-top: 12px;
+        padding: 12px;
+        background: #f7faff;
+        border: 1px dashed #b6d4fe;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .custom-ratio-inputs {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .custom-dimension-input {
+            flex: 1;
+            border-radius: 6px;
+            background: #ffffff;
+            border: 1px solid #dbeafe;
+            font-size: 14px;
+
+            &:focus-within {
+              border-color: $primary-color;
+            }
+          }
+
+          .dimension-separator {
+            font-size: 16px;
+            font-weight: bold;
+            color: $text-color;
+            margin: 0 4px;
+          }
+        }
+
+        .apply-ratio-button {
+          align-self: flex-end;
+          border-radius: 6px;
+          font-size: 14px;
+          background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+          border: none;
+          transition: all 0.2s;
+
+          &:hover:not(:disabled) {
+            background: linear-gradient(90deg, #40a9ff 0%, #69c0ff 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(24, 144, 255, 0.2);
+          }
+
+          &:disabled {
+            background: #f0f0f0;
+            color: rgba(0, 0, 0, 0.25);
+          }
+        }
+
+        @media (max-width: 768px) {
+          padding: 8px;
+          gap: 8px;
+        }
+      }
+
+      .custom-divider {
+        margin: 18px 0 18px 0;
+        border-top: 1.5px dashed #b6d4fe;
+      }
+
+      .generate-button.gradient-btn {
+        background: linear-gradient(90deg, #1890ff 0%, #66e0ff 100%);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        font-size: 17px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.10);
+        transition: background 0.2s, box-shadow 0.2s;
+
+        &:hover {
+          background: linear-gradient(90deg, #40a9ff 0%, #7fffd4 100%);
+          box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15);
+        }
+      }
+
+      .error-alert {
+        margin-top: 18px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      padding: 14px 6px;
+    }
   }
 
-  .ig-logo {
-    font-size: 1.2rem;
+  .collapsed-placeholder {
+    padding: 16px 0;
+    text-align: center;
+  }
+}
+
+// --- 右侧图片展示区 ---
+.image-content-area {
+  padding: 24px; // Default padding
+  background-color: $content-bg;
+  height: 100%; // Fill parent height
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto; // Allow scrolling *if* content overflows (e.g., large error)
+
+  .spin-wrapper,
+  :deep(.ant-spin-container) {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .ig-user-name {
-    display: none;
+  .image-display-container {
+    width: 100%;
+    height: 100%;
+    max-width: 90vh; // Keep aspect ratio constraints
+    max-height: 90vh;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+    &.has-image {
+      background-color: transparent;
+      box-shadow: none;
+    }
+
+    .generated-image { /* Styles remain the same */
+    }
+
+    .placeholder {
+      // Styles remain largely the same
+      text-align: center;
+      color: $text-color-secondary;
+      padding: 30px; // Slightly smaller padding
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+      background-color: $placeholder-bg;
+      border: 2px dashed $border-color;
+      border-radius: 8px;
+
+      .placeholder-icon {
+        font-size: 40px; /*...*/
+      }
+
+      p {
+        font-size: 15px; /*...*/
+      }
+
+      span {
+        font-size: 12px; /*...*/
+      }
+
+      // Responsive placeholder adjustments
+      @media (max-width: 768px) {
+        padding: 20px;
+        .placeholder-icon {
+          font-size: 32px;
+        }
+        p {
+          font-size: 14px;
+        }
+      }
+    }
   }
 
-  .ig-main {
-    padding: 12px 12px 0 12px;
-    margin-top: 56px;
-    height: calc(100% - 56px);
+  // Responsive padding
+  @media (max-width: 768px) {
+    padding: 16px;
   }
-
-  .ig-card {
-    padding: 16px 12px 12px 12px;
+  @media (max-width: 576px) {
+    padding: 12px;
   }
 }
 </style>
