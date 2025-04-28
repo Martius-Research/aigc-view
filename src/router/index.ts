@@ -1,8 +1,8 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { jwtDecode } from 'jwt-decode';
 const routes = [
-  { path: '/login', component: () => import('@/pages/Auth.vue') },
-  { path: '/', component: () => import('@/pages/ImageGenerator.vue') }
+  { path: '/login', component: () => import('@/pages/AuthLogin.vue') },
+  { path: '/', component: () => import('@/pages/Dashboard.vue') }
 
 ]
 

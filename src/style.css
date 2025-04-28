@@ -1,66 +1,93 @@
 :root {
-  --primary-font-color: #213547;
-  --secondary-font-color: #747bff;
-  --base-line-height: 1.5;
+    --primary-font-color: #213547;
+    --secondary-font-color: #747bff;
+    --base-line-height: 1.5;
 
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: var(--base-line-height);
-  font-weight: 400;
-  color: var(--primary-font-color);
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: var(--base-line-height);
+    font-weight: 400;
+    color: var(--primary-font-color);
 
-  color-scheme: light dark;
+    color-scheme: light dark;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --bg-gradient-light: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --bg-gradient-dark: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    --card-bg-light: #fff;
+    --card-bg-dark: #2d3748;
+    --text-color-primary-light: rgba(0, 0, 0, 0.85);
+    --text-color-primary-dark: rgba(255, 255, 255, 0.9);
 }
 
- 
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  width: 100%;
-  line-height: var(--base-line-height);
-  color: var(--primary-font-color);
+    margin: 0;
+    min-height: 100vh;
+    width: 100%;
+    line-height: var(--base-line-height);
+    color: var(--primary-font-color);
 }
 
- 
+
 #app {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  line-height: var(--base-line-height);
-  color: var(--primary-font-color);
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: var(--base-line-height);
+    color: var(--primary-font-color);
+}
+
+@media (prefers-color-scheme: dark) {
+    .auth-container {
+        background: var(--bg-gradient-dark);
+        color: var(--text-color-primary-dark);
+    }
+
+
+
+
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+    :root {
+        color: #213547;
+        background-color: #ffffff;
+    }
+
+    a:hover {
+        color: #747bff;
+    }
+
+    button {
+        background-color: #f9f9f9;
+    }
+
+    .auth-container {
+        background: var(--bg-gradient-light);
+        color: var(--text-color-primary-light);
+    }
+
+    .auth-card {
+        background: var(--card-bg-light) !important;
+    }
 }
 
 input,
 textarea {
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 8px;
-  color: var(--primary-font-color);
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    color: var(--primary-font-color);
 }
 
 input:focus,
 textarea:focus {
-  outline: none;
-  border-color: var(--secondary-font-color);
-  background-color: #f0f0f0;
+    outline: none;
+    border-color: var(--secondary-font-color);
+    background-color: #f0f0f0;
 }

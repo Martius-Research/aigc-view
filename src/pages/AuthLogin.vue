@@ -1,18 +1,9 @@
 <template>
   <div class="auth-container">
-    <div class="auth-background">
-      <div class="particles-container">
-        <div v-for="n in 20" :key="n" class="particle" :style="getParticleStyle(n)"></div>
-      </div>
-    </div>
 
     <div class="auth-content">
       <a-card class="auth-card" :bordered="false">
         <div class="card-header">
-          <div class="logo-container">
-
-            <div class="logo-text"> </div>
-          </div>
           <h1 class="card-title">{{ isLogin ? '欢迎回来' : '创建账号' }}</h1>
           <p class="card-subtitle">{{ isLogin ? '登录您的账号以继续' : '填写以下信息创建您的账号' }}</p>
         </div>
@@ -277,7 +268,7 @@ const handleSubmit = async () => {
       });
 
       const {
-        data: {successful, resultHint,resultValue},
+        data: {successful, resultHint, resultValue},
       } = response;
       if (!successful) return ElMessage({
         message: resultHint,
@@ -326,128 +317,54 @@ const handleSubmit = async () => {
 }
 
 
-// 生成随机粒子样式
-const getParticleStyle = (_index: number) => {
-  const size = Math.floor(Math.random() * 20) + 10
-  const posX = Math.random() * 100
-  const posY = Math.random() * 100
-  const animationDuration = Math.floor(Math.random() * 20) + 10
-  const animationDelay = Math.random() * 5
-  const opacity = Math.random() * 0.5 + 0.1
 
-  return {
-    width: `${size}px`,
-    height: `${size}px`,
-    left: `${posX}%`,
-    top: `${posY}%`,
-    animationDuration: `${animationDuration}s`,
-    animationDelay: `${animationDelay}s`,
-    opacity: opacity
-  }
-}
 </script>
 
-<style scoped>
-.auth-container {
-  width: 100vw;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  /* Updated background gradient for a richer dark feel */
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  /* Adjusted radial gradients for subtle highlights */
-  background-image: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 75%),
-    radial-gradient(circle at 85% 80%, rgba(34, 211, 238, 0.09) 0%, transparent 65%),
-    linear-gradient(135deg, #0f172a, #1e293b);
-  overflow: hidden;
-  position: relative;
-  color: #e2e8f0;  
-}
+<style scoped lang="scss">
+ 
+// 颜色变量
+$primary-color: #1890ff;
+$primary-hover-color: #40a9ff;
+$error-color: #ff4d4f;
+$text-color-primary: rgba(0, 0, 0, 0.85);
+$text-color-secondary: rgba(0, 0, 0, 0.45);
+$text-color-tertiary: #94a3b8;
+$bg-color: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);;
+$white: #fff;
+$link-color: #38bdf8;
+$muted-color: #a0aec0;
 
-.auth-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  z-index: 0;
-  /* Simplified background overlay */
-  background: linear-gradient(120deg, rgba(15, 23, 42, 0.96) 50%, rgba(30, 41, 59, 0.94) 100%);
-}
+// 尺寸变量
+$border-radius: 16px;
+$spacing-xs: 0.5rem;
+$spacing-sm: 0.8rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
 
-.particles-container {
-  position: absolute;
-  width: 100vw;
-  height: 100vh;
-  top: 0;
-  left: 0;
-}
+// 阴影
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
-.particle {
-  position: absolute;
-  /* Updated particle colors to match new theme */
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(34, 211, 238, 0.2));
-  border-radius: 50%;
-  filter: blur(7px); /* Slightly increased blur */
-  animation: float linear infinite;
-}
 
-@keyframes float {
-  0% {
-    transform: translateY(0) translateX(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-20px) translateX(10px) rotate(90deg);
-  }
-  50% {
-    transform: translateY(0) translateX(20px) rotate(180deg);
-  }
-  75% {
-    transform: translateY(20px) translateX(10px) rotate(270deg);
-  }
-  100% {
-    transform: translateY(0) translateX(0) rotate(360deg);
-  }
-}
+ 
 
-.auth-content {
-  flex: 1;
+
+// 混合器
+@mixin flex-center {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem 1rem;
-  position: relative;
-  z-index: 2;
 }
 
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-  /* Darker card background with slightly more transparency */
-  background: rgba(15, 23, 42, 0.9) !important;
-  border-radius: 16px !important; /* Slightly adjusted radius */
-  backdrop-filter: blur(12px);
-  /* Updated shadow and border */
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(59, 130, 246, 0.15);
-  overflow: hidden;
-  position: relative;
-  animation: fadeIn 0.6s ease-out;
-  border: 1px solid rgba(59, 130, 246, 0.1);
+@mixin text-center {
+  text-align: center;
 }
 
-.auth-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px; /* Slightly thicker */
-  /* Updated gradient to match new theme */
-  background: linear-gradient(90deg, #3b82f6, #22d3ee, #3b82f6);
-  z-index: 1;
+@mixin transition($property: all, $duration: 0.2s) {
+  transition: $property $duration;
 }
 
+// 动画
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -459,102 +376,95 @@ const getParticleStyle = (_index: number) => {
   }
 }
 
-.card-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
 
-.logo-container {
+.auth-container {
+  width: 100vw;
+  min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+  flex-direction: column;
+  overflow: hidden;
+  //position: relative;
+  position: fixed;
+  top: 0;
+  color: $text-color-primary;
+
 }
 
-.logo-text {
-  font-size: 1.7rem;
-  font-weight: 700;
-  /* Updated logo text gradient */
-  background: linear-gradient(135deg, #3b82f6, #22d3ee);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.auth-content {
+  flex: 1;
+  @include flex-center;
+  padding: $spacing-xl $spacing-md;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: $white ;
+  border-radius: $border-radius !important;
+  box-shadow: $box-shadow;
+  overflow: hidden;
+  position: relative;
+  padding: $spacing-xl $spacing-lg;
+}
+
+.card-header {
+  @include text-center;
+  margin-bottom: $spacing-xl;
 }
 
 .card-title {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #f8fafc; /* Brighter title color */
-  margin-bottom: 0.5rem;
-  /* Updated text shadow */
-  text-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+  font-weight: 600;
+  color: $text-color-primary;
+  margin-bottom: $spacing-xs;
+  @include text-center;
 }
 
 .card-subtitle {
-  font-size: 0.95rem;
-  color: #94a3b8; /* Adjusted subtitle color */
-  margin-bottom: 1.2rem;
+  font-size: 0.9rem;
+  color: $text-color-secondary;
+  margin-bottom: $spacing-lg;
+  @include text-center;
+  line-height: 1.5;
 }
 
 .login-form {
   width: 100%;
-}
-
-.login-form-button {
-  width: 100%;
-  height: 46px;
-  font-size: 1rem;
-  font-weight: 600;
-  /* Updated button gradient */
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
-  border: none !important;
-  /* Updated button shadow */
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.28);
-  transition: all 0.3s cubic-bezier(.4,0,.2,1);
-  color: #fff !important;
-  border-radius: 8px !important;
-}
-
-.login-form-button:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.03);
-  /* Updated hover shadow */
-  box-shadow: 0 7px 20px rgba(59, 130, 246, 0.35);
-  background: linear-gradient(135deg, #2563eb, #1e40af) !important; /* Darker gradient on hover */
-}
-
-.login-form-button:active:not(:disabled) {
-  transform: translateY(0) scale(1);
+  
+  &-button {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    font-weight: 400;
+  }
+  :deep(.ant-input-affix-wrapper >input.ant-input){
+   background-color: white;
+ }
 }
 
 .site-form-item-icon {
-  color: #60a5fa; /* Kept icon color, looks good */
-  font-size: 1.1rem;
+  color: $text-color-secondary;
+  font-size: 16px;
+  margin-right: 8px;
 }
 
 .a-input, .a-input-password {
-  /* Slightly darker input background */
-  background: rgba(30, 41, 59, 0.95) !important;
-  border-radius: 8px !important;
-  /* Slightly lighter border */
-  border: 1px solid #475569 !important;
-  color: #e2e8f0 !important; /* Match container text color */
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.a-input:focus, .a-input-password:focus {
-  border-color: #3b82f6 !important; /* Updated focus border color */
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); /* Added focus ring */
-}
-
-.a-input input, .a-input-password input {
-  background: transparent !important;
-  color: #e2e8f0 !important; /* Match container text color */
-  font-size: 1rem;
+  margin-bottom: $spacing-xs;
+  background-color: $white;
+  
+  input {
+    font-size: 14px;
+    background-color: $white;
+    border-radius: 8px;
+  }
 }
 
 .error-message {
-  color: #fca5a5; /* Slightly softer error color */
-  font-size: 0.8rem;
-  margin-top: 0.18rem;
+  color: $error-color;
+  font-size: 14px;
+  margin-top: 4px;
 }
 
 .form-footer {
@@ -562,95 +472,89 @@ const getParticleStyle = (_index: number) => {
 }
 
 .auth-switch {
-  margin-top: 1rem;
-  text-align: center;
+  margin-top: $spacing-md;
+  @include text-center;
   font-size: 0.95rem;
-  color: #94a3b8; /* Match subtitle color */
+  color: $text-color-tertiary; /* Match subtitle color */
 }
 
 .switch-link {
-  color: #60a5fa; /* Updated link color */
+  color: $primary-color;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 400;
   margin-left: 4px;
-  transition: color 0.2s;
+  @include transition(color);
   text-decoration: none;
-}
-
-.switch-link:hover {
-  text-decoration: underline;
-  color: #3b82f6; /* Updated link hover color */
+  
+  &:hover {
+    color: $primary-hover-color;
+  }
 }
 
 .form-error {
-  margin-top: 1rem;
+  margin-top: $spacing-md;
 }
 
 .auth-footer {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 2rem;
-  z-index: 10;
+  height: 40px;
+  @include flex-center;
+  padding: 0 $spacing-md;
   position: relative;
+  color: $text-color-secondary;
+  font-size: 14px;
+  @include text-center;
+  
+  &::before {
+    content: '';
+  }
 }
 
 .back-btn {
-  color: #a0aec0 !important;
+  color: $muted-color !important;
   font-size: 0.95rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: color 0.2s;
-}
-
-.back-btn:hover {
-  color: #38bdf8 !important;
-  transform: translateY(-1px);
+  @include transition(color);
+  
+  &:hover {
+    color: $link-color !important;
+    transform: translateY(-1px);
+  }
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
   .auth-card {
-    padding: 1.2rem 0.5rem;
-    max-width: 98vw;
-    min-width: 0;
+    max-width: 90vw;
+    padding: $spacing-lg $spacing-md;
   }
+
   .auth-content {
-    padding: 0.5rem;
+    padding: $spacing-md;
   }
+
   .card-header {
-    margin-bottom: 1.2rem;
+    margin-bottom: $spacing-md;
   }
-  .logo-text {
-    font-size: 1.2rem;
-  }
+
   .card-title {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
 }
+
 @media (max-width: 480px) {
-  .auth-card {
-    padding: 0.7rem 0.2rem;
-    border-radius: 10px !important;
-  }
   .auth-content {
-    padding: 0.2rem;
+    padding: $spacing-xs;
   }
-  .logo-text {
-    font-size: 1rem;
-  }
+
   .card-title {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
+
   .card-subtitle {
-    font-size: 0.8rem;
-  }
-  .login-form-button {
-    height: 40px;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
   }
 }
 </style>
