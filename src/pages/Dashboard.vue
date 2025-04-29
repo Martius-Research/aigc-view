@@ -4,24 +4,26 @@
     <a-layout-header class="app-header">
       <!-- 右侧用户区域 -->
       <div class="user-area">
-        <a-button 
-          @click="openSubscriptionSettings" 
-          class="subscribe-header-btn"
-          style="margin-right: 16px;"
+        <a-button
+            @click="openSubscriptionSettings"
+            class="subscribe-header-btn"
+            style="margin-right: 16px;"
         >
-          <template #icon><CrownOutlined /></template>
+          <template #icon>
+            <CrownOutlined/>
+          </template>
           升级订阅
         </a-button>
         <a-dropdown class="user-dropdown">
           <a class="ant-dropdown-link user-dropdown-trigger" @click.prevent>
 
-            <UserOutlined />
+            <UserOutlined/>
             <span class="username">{{ username }}</span>
             <DownOutlined class="dropdown-arrow"/>
           </a>
           <template #overlay>
             <a-menu @click="handleMenuClick" class="user-dropdown-menu">
-               
+
               <a-menu-item key="settings">
                 <SettingOutlined/>
                 系统设置
@@ -43,13 +45,15 @@
       <a-layout-sider width="360" class="dashboard-sider">
         <div class="sider-content">
           <a-menu
-            v-model:selectedKeys="selectedMode"
-            mode="inline"
-            theme="light"
-            class="mode-menu"
+              v-model:selectedKeys="selectedMode"
+              mode="inline"
+              theme="light"
+              class="mode-menu"
           >
             <a-menu-item v-for="mode in generationModes" :key="mode.key">
-              <template #icon><component :is="mode.icon" /></template>
+              <template #icon>
+                <component :is="mode.icon"/>
+              </template>
               {{ mode.name }}
             </a-menu-item>
           </a-menu>
@@ -61,118 +65,119 @@
                 <div class="form-item">
                   <label class="form-label">提示词</label>
                   <a-textarea
-                    v-model:value="params.prompt"
-                    placeholder="请输入图像描述，例如：'夕阳下的海滩'，'太空中的飞船'，'梦幻花园'..."
-                    :rows="4"
-                    class="prompt-textarea"
-                    :maxLength="500"
-                    showCount
-                />
-                <a-button
-                    @click="rewritePrompt"
-                    class="rewrite-btn"
-                    type="primary"
-                    
-                    size="small"
-                    :loading="rewrite"
-                >
-                  <ThunderboltOutlined/>
-                  提示词增强
-                </a-button>
-              </div>
+                      v-model:value="params.prompt"
+                      placeholder="请输入图像描述，例如：'夕阳下的海滩'，'太空中的飞船'，'梦幻花园'..."
+                      :rows="4"
+                      class="prompt-textarea"
+                      :maxLength="500"
+                      showCount
+                  />
+                  <a-button
+                      @click="rewritePrompt"
+                      class="rewrite-btn"
+                      type="primary"
 
-              <a-divider/>
-
-              <div class="form-item">
-                <label class="form-label">比例选择</label>
-                <div class="ratio-options">
-                  <a-tabs default-active-key="preset">
-                    <a-tab-pane key="preset" tab="预设比例">
-                      <a-radio-group v-model:value="params.aspectRatio" button-style="solid" class="ratio-radio-group">
-                        <a-radio-button value="1:1">1:1 正方形</a-radio-button>
-                        <a-radio-button value="4:3">4:3 标准</a-radio-button>
-                        <a-radio-button value="16:9">16:9 宽屏</a-radio-button>
-                        <a-radio-button value="9:16">9:16 竖屏</a-radio-button>
-                        <a-radio-button value="3:4">3:4 竖构图</a-radio-button>
-                        <a-radio-button value="2:3">2:3 人像</a-radio-button>
-                        <a-radio-button value="3:2">3:2 风景</a-radio-button>
-                      </a-radio-group>
-                    </a-tab-pane>
-                    <a-tab-pane key="custom" tab="自定义比例">
-                      <div class="custom-ratio">
-                        <a-input-number v-model:value="customWidth" :min="1" :max="2048" placeholder="宽"
-                                        addon-before="宽"/>
-                        <a-input-number v-model:value="customHeight" :min="1" :max="2048" placeholder="高"
-                                        addon-before="高"/>
-                        <a-button type="primary" @click="applyCustomRatio">应用</a-button>
-                      </div>
-                    </a-tab-pane>
-                    <a-tab-pane key="sizes" tab="尺寸推荐">
-                      <a-list size="small">
-                        <a-list-item @click="selectPresetSize('1024*1024')" class="preset-size-item">
-                          <a-tag color="blue">1024 × 1024</a-tag>
-                          标准正方形
-                        </a-list-item>
-                        <a-list-item @click="selectPresetSize('1024*1792')" class="preset-size-item">
-                          <a-tag color="purple">1024 × 1792</a-tag>
-                          垂直海报
-                        </a-list-item>
-                        <a-list-item @click="selectPresetSize('1792*1024')" class="preset-size-item">
-                          <a-tag color="green">1792 × 1024</a-tag>
-                          水平横幅
-                        </a-list-item>
-                        <a-list-item @click="selectPresetSize('896*1152')" class="preset-size-item">
-                          <a-tag color="orange">896 × 1152</a-tag>
-                          手机壁纸
-                        </a-list-item>
-                      </a-list>
-                    </a-tab-pane>
-                  </a-tabs>
+                      size="small"
+                      :loading="rewrite"
+                  >
+                    <ThunderboltOutlined/>
+                    提示词增强
+                  </a-button>
                 </div>
-              </div>
-              <a-divider/>
-              <label class="form-label">模型选择</label>
-              <div class="form-item">
-                <a-select
-                    class="model-select"
-                    v-model:value="imageVal"
-                    show-search
-                    placeholder="请选择模型"
-                    style="width: 200px"
-                    :options="imageOptions"
-                    :filter-option="filterOption"
-                    @change="handleChange"
-                ></a-select>
-              </div>
-              <a-divider/>
-              <div class="form-item">
-                <a-button
-                    type="primary"
-                    class="generate-btn"
-                    size="large"
-                    block
-                    :loading="isLoading"
-                    :disabled="!params.prompt"
-                    @click="generateImage"
-                >
-                  <PictureOutlined/>
-                  生成图片
-                </a-button>
-              </div>
+
+                <a-divider/>
+
+                <div class="form-item">
+                  <label class="form-label">比例选择</label>
+                  <div class="ratio-options">
+                    <a-tabs default-active-key="preset">
+                      <a-tab-pane key="preset" tab="预设比例">
+                        <a-radio-group v-model:value="params.aspectRatio" button-style="solid"
+                                       class="ratio-radio-group">
+                          <a-radio-button value="1:1">1:1 正方形</a-radio-button>
+                          <a-radio-button value="4:3">4:3 标准</a-radio-button>
+                          <a-radio-button value="16:9">16:9 宽屏</a-radio-button>
+                          <a-radio-button value="9:16">9:16 竖屏</a-radio-button>
+                          <a-radio-button value="3:4">3:4 竖构图</a-radio-button>
+                          <a-radio-button value="2:3">2:3 人像</a-radio-button>
+                          <a-radio-button value="3:2">3:2 风景</a-radio-button>
+                        </a-radio-group>
+                      </a-tab-pane>
+                      <a-tab-pane key="custom" tab="自定义比例">
+                        <div class="custom-ratio">
+                          <a-input-number v-model:value="customWidth" :min="1" :max="2048" placeholder="宽"
+                                          addon-before="宽"/>
+                          <a-input-number v-model:value="customHeight" :min="1" :max="2048" placeholder="高"
+                                          addon-before="高"/>
+                          <a-button type="primary" @click="applyCustomRatio">应用</a-button>
+                        </div>
+                      </a-tab-pane>
+                      <a-tab-pane key="sizes" tab="尺寸推荐">
+                        <a-list size="small">
+                          <a-list-item @click="selectPresetSize('1024*1024')" class="preset-size-item">
+                            <a-tag color="blue">1024 × 1024</a-tag>
+                            标准正方形
+                          </a-list-item>
+                          <a-list-item @click="selectPresetSize('1024*1792')" class="preset-size-item">
+                            <a-tag color="purple">1024 × 1792</a-tag>
+                            垂直海报
+                          </a-list-item>
+                          <a-list-item @click="selectPresetSize('1792*1024')" class="preset-size-item">
+                            <a-tag color="green">1792 × 1024</a-tag>
+                            水平横幅
+                          </a-list-item>
+                          <a-list-item @click="selectPresetSize('896*1152')" class="preset-size-item">
+                            <a-tag color="orange">896 × 1152</a-tag>
+                            手机壁纸
+                          </a-list-item>
+                        </a-list>
+                      </a-tab-pane>
+                    </a-tabs>
+                  </div>
+                </div>
+                <a-divider/>
+                <label class="form-label">模型选择</label>
+                <div class="form-item">
+                  <a-select
+                      class="model-select"
+                      v-model:value="imageVal"
+                      show-search
+                      placeholder="请选择模型"
+                      style="width: 200px"
+                      :options="imageOptions"
+                      :filter-option="filterOption"
+                      @change="handleChange"
+                  ></a-select>
+                </div>
+                <a-divider/>
+                <div class="form-item">
+                  <a-button
+                      type="primary"
+                      class="generate-btn"
+                      size="large"
+                      block
+                      :loading="isLoading"
+                      :disabled="!params.prompt"
+                      @click="generateImage"
+                  >
+                    <PictureOutlined/>
+                    生成图片
+                  </a-button>
+                </div>
               </div>
             </a-card>
           </div>
 
           <!-- 未来其他模式的占位符 -->
           <div v-if="selectedMode.includes('image-to-image')" class="mode-content">
-             <a-card title="图生图 (开发中)" class="form-card" :bordered="false">
-                <a-empty description="此功能正在开发中..." />
-             </a-card>
+            <a-card title="图生图 (开发中)" class="form-card" :bordered="false">
+              <a-empty description="此功能正在开发中..."/>
+            </a-card>
           </div>
-           <div v-if="selectedMode.includes('text-to-video')" class="mode-content">
-             <a-card title="文生视频 (开发中)" class="form-card" :bordered="false">
-                <a-empty description="此功能正在开发中..." />
-             </a-card>
+          <div v-if="selectedMode.includes('text-to-video')" class="mode-content">
+            <a-card title="文生视频 (开发中)" class="form-card" :bordered="false">
+              <a-empty description="此功能正在开发中..."/>
+            </a-card>
           </div>
 
         </div>
@@ -220,63 +225,131 @@
                 mode="inline"
                 class="settings-menu"
             >
-            <a-menu-item key="general">
-                <template #icon><SettingOutlined /> /></template>
+              <a-menu-item key="general">
+                <template #icon>
+                  <SettingOutlined/>
+                  />
+                </template>
                 通用设置
-            </a-menu-item>
+              </a-menu-item>
               <a-menu-item key="account">
-                <template #icon><UserOutlined /></template>
+                <template #icon>
+                  <UserOutlined/>
+                </template>
                 账号信息
               </a-menu-item>
               <a-menu-item key="subscription">
-                <template #icon><CreditCardOutlined /></template>
+                <template #icon>
+                  <CreditCardOutlined/>
+                </template>
                 订阅管理
               </a-menu-item>
               <a-menu-item key="usage">
-                <template #icon><BarChartOutlined /></template>
+                <template #icon>
+                  <BarChartOutlined/>
+                </template>
                 使用统计
               </a-menu-item>
               <a-menu-item key="appearance">
-                <template #icon><SkinOutlined /></template>
+                <template #icon>
+                  <SkinOutlined/>
+                </template>
                 外观设置
               </a-menu-item>
               <a-menu-item key="notification">
-                <template #icon><BellOutlined /></template>
+                <template #icon>
+                  <BellOutlined/>
+                </template>
                 通知设置
               </a-menu-item>
-             
+
             </a-menu>
           </div>
           <div class="settings-content">
             <div v-if="selectedSettingKey.includes('general')" class="settings-panel">
-                <h3>通用设置</h3>
-                <a-divider />
-                <h4>账户管理</h4>
-                <div class="account-management">
-                  <p class="delete-warning">
-                    请注意：注销账户是一个不可逆的操作。您的所有数据，包括生成的图片和个人信息，都将被永久删除。
-                  </p>
-                  <a-button type="primary" danger @click="showDeleteConfirm">
-                    <template #icon><ExclamationCircleOutlined /></template>
-                    注销账户
-                  </a-button>
-                </div>
-                
+              <h3>通用设置</h3>
+              <a-divider/>
+
+              <!-- 语言偏好设置 -->
+              <h4>语言偏好</h4>
+              <div class="language-settings">
+                <a-select v-model:value="generalSettings.language" style="width: 200px">
+                  <a-select-option value="zh-CN">简体中文</a-select-option>
+                  <a-select-option value="en-US">English</a-select-option>
+                </a-select>
               </div>
+
+              <a-divider/>
+
+              <!-- 界面主题设置 -->
+              <h4>界面主题</h4>
+              <div class="theme-settings">
+                <a-radio-group v-model:value="generalSettings.theme">
+                  <a-radio value="light">浅色主题</a-radio>
+                  <a-radio value="dark">深色主题</a-radio>
+                  <a-radio value="system">跟随系统</a-radio>
+                </a-radio-group>
+              </div>
+
+              <a-divider/>
+
+              <!-- 默认图片生成参数 -->
+              <h4>默认图片生成参数</h4>
+              <div class="default-image-settings">
+                <div class="setting-item">
+                  <span class="setting-label">默认分辨率：</span>
+                  <a-select v-model:value="generalSettings.defaultResolution" style="width: 200px">
+                    <a-select-option value="1024x1024">1024 × 1024 (标准)</a-select-option>
+                    <a-select-option value="1024x1792">1024 × 1792 (竖版)</a-select-option>
+                    <a-select-option value="1792x1024">1792 × 1024 (横版)</a-select-option>
+                  </a-select>
+                </div>
+
+
+              </div>
+
+              <a-divider/>
+
+              <!-- API密钥管理 -->
+              <h4>API密钥管理</h4>
+              <div class="api-key-settings">
+                <a-input-password
+                    v-model:value="generalSettings.apiKey"
+                    placeholder="请输入API密钥"
+                    style="width: 300px"
+                />
+                <a-button type="primary" style="margin-left: 8px">验证</a-button>
+              </div>
+
+              <a-divider/>
+
+              <!-- 账户管理 -->
+              <h4>账户管理</h4>
+              <div class="account-management">
+                <p class="delete-warning">
+                  请注意：注销账户是一个不可逆的操作。您的所有数据，包括生成的图片和个人信息，都将被永久删除。
+                </p>
+                <a-button type="primary" danger @click="showDeleteConfirm">
+                  <template #icon>
+                    <ExclamationCircleOutlined/>
+                  </template>
+                  注销账户
+                </a-button>
+              </div>
+
+            </div>
             <div v-if="selectedSettingKey.includes('account')" class="settings-panel">
               <h3>账号信息</h3>
               <a-form layout="vertical">
                 <a-form-item label="用户名">
-                  <a-input v-model:value="userInfo.username" disabled />
+                  <a-input v-model:value="userInfo.username" disabled/>
                 </a-form-item>
                 <a-form-item label="邮箱">
-                  <a-input v-model:value="userInfo.email" />
+                  <a-input v-model:value="userInfo.email"/>
                 </a-form-item>
-                <a-form-item label="手机号">
-                  <a-input v-model:value="userInfo.phone" />
-                </a-form-item>
+
                 <a-form-item>
-                  <a-button type="primary">保存修改</a-button>
+                  <a-button type="primary" @click="applyChanges">保存修改</a-button>
                 </a-form-item>
               </a-form>
             </div>
@@ -295,7 +368,8 @@
               <div class="subscription-plans">
                 <h4>可用套餐</h4>
                 <a-radio-group v-model:value="selectedPlan" button-style="solid" class="plan-radio-group">
-                  <a-card v-for="plan in subscriptionPlans" :key="plan.id" class="plan-card" :class="{ 'selected-plan': selectedPlan === plan.id }">
+                  <a-card v-for="plan in subscriptionPlans" :key="plan.id" class="plan-card"
+                          :class="{ 'selected-plan': selectedPlan === plan.id }">
                     <template #title>
                       <div class="plan-title">
                         <span>{{ plan.name }}</span>
@@ -305,7 +379,8 @@
                     <div class="plan-price">¥{{ plan.price }}<span class="price-period">/{{ plan.period }}</span></div>
                     <div class="plan-features">
                       <p v-for="(feature, index) in plan.features" :key="index">
-                        <CheckOutlined /> {{ feature }}
+                        <CheckOutlined/>
+                        {{ feature }}
                       </p>
                     </div>
                     <a-radio :value="plan.id" class="plan-radio">选择</a-radio>
@@ -324,24 +399,24 @@
               <div class="usage-stats">
                 <a-row :gutter="16">
                   <a-col :span="8">
-                    <a-statistic title="本月已生成图片" :value="usageStats.imagesGenerated" />
+                    <a-statistic title="本月已生成图片" :value="usageStats.imagesGenerated"/>
                   </a-col>
                   <a-col :span="8">
-                    <a-statistic title="剩余生成次数" :value="usageStats.imagesRemaining" />
+                    <a-statistic title="剩余生成次数" :value="usageStats.imagesRemaining"/>
                   </a-col>
                   <a-col :span="8">
-                    <a-statistic title="套餐使用率" :value="usageStats.usagePercentage" suffix="%" :precision="2" />
+                    <a-statistic title="套餐使用率" :value="usageStats.usagePercentage" suffix="%" :precision="2"/>
                   </a-col>
                 </a-row>
 
                 <div class="usage-progress">
                   <div class="progress-label">套餐使用进度</div>
-                  <a-progress :percent="usageStats.usagePercentage" :stroke-color="{ from: '#108ee9', to: '#87d068' }" />
+                  <a-progress :percent="usageStats.usagePercentage" :stroke-color="{ from: '#108ee9', to: '#87d068' }"/>
                 </div>
 
                 <div class="usage-history">
                   <h4>使用历史</h4>
-                  <a-table :dataSource="usageHistory" :columns="usageColumns" :pagination="{ pageSize: 5 }" />
+                  <a-table :dataSource="usageHistory" :columns="usageColumns" :pagination="{ pageSize: 5 }"/>
                 </div>
               </div>
             </div>
@@ -357,7 +432,7 @@
               <p>此功能正在开发中...</p>
             </div>
 
-           
+
           </div>
         </div>
       </a-modal>
@@ -367,6 +442,7 @@
 </template>
 
 <script setup lang="ts">
+import {watch} from 'vue'
 import {
   DownOutlined,
   UserOutlined,
@@ -383,12 +459,14 @@ import {
   CheckOutlined,
   ExclamationCircleOutlined,
   CrownOutlined, // 新增皇冠图标
+
+//   VideoCameraOutlined,
   // 新增图标
   FileImageOutlined, // 用于文生图
 //   PictureOutlined as PictureModeOutlined, // 用于图生图 (避免与生成按钮图标冲突)
- 
+
 } from '@ant-design/icons-vue'
-import {  Modal } from 'ant-design-vue'; 
+import {Modal} from 'ant-design-vue';
 // 系统设置相关
 const selectedSettingKey = ref(['general']);
 const userInfo = reactive({
@@ -397,30 +475,90 @@ const userInfo = reactive({
   phone: '13800138000',
   subscription: null
 });
+
+// 通用设置相关
+const generalSettings = reactive({
+  language: 'zh-CN',
+  theme: 'light',
+  defaultResolution: '1024x1024',
+  defaultModel: 'flux-dev-ultra-fast',
+  apiKey: ''
+});
+import {deleteAccount,modifyEmail} from '@/api/login'
+import {getUserInfo} from '@/api/user';
+// 验证API密钥
+const validateApiKey = () => {
+  // TODO: 实现API密钥验证逻辑
+  message.success('API密钥验证成功');
+};
+
+// 监听主题变化
+watch(() => generalSettings.theme, (newTheme) => {
+  // TODO: 实现主题切换逻辑
+  console.log('主题切换为:', newTheme);
+});
 const showDeleteConfirm = () => {
-    Modal.confirm({
-      title: '您确定要注销账户吗?',
-      icon: h(ExclamationCircleOutlined),
-      content: '此操作将永久删除您的所有数据，且无法恢复。请再次确认。',
-      okText: '确认注销',
-      okType: 'danger',
-      cancelText: '取消',
-      centered: true,
-      onOk() {
-        console.log('开始执行注销账户逻辑...');
-        // 在这里调用后端 API 来删除账户
-        // 假设删除成功后的操作：
+  Modal.confirm({
+    title: '您确定要注销账户吗?',
+    icon: h(ExclamationCircleOutlined),
+    content: '此操作将永久删除您的所有数据，且无法恢复。请再次确认。',
+    okText: '确认注销',
+    okType: 'danger',
+    cancelText: '取消',
+    centered: true,
+    async onOk() {
+      try {
+        const response: AxiosResponse<IApiResponse> = await deleteAccount({
+          userId: userId.value
+        });
+        const {
+          data: {successful, resultHint},
+        } = response;
+        if (!successful) return message.error(resultHint);
         message.success('账户已成功注销。');
-        localStorage.removeItem("Authorization"); // 清除本地 token
-        router.push('/login'); // 跳转到登录页
-        open.value = false; // 关闭设置弹窗
-      },
-      onCancel() {
-        console.log('取消注销');
-      },
+        localStorage.removeItem("Authorization");
+        router.push('/login');
+      } catch (err) {
+        console.error("Failed to load data:", err);
+        message.error(`error: ${err}`);
+
+      } finally {
+
+      }
+
+
+    },
+    onCancel() {
+      console.log('取消注销');
+    },
+  });
+};
+
+
+/**
+ * 修改个人信息
+ */
+const applyChanges = async () => {
+  try {
+
+    const response: AxiosResponse<IApiResponse> = await modifyEmail({
+
+      userId: userId.value,
+      email: userInfo.email
+
     });
-  };
-  
+
+    const {
+      data: {successful, resultHint},
+    } = response;
+    if (!successful) return message.error(resultHint);
+    message.success('修改成功');
+  } catch (err) {
+
+    message.error(`error: ${err}`);
+
+  }
+}
 // 订阅计划数据
 const selectedPlan = ref(null);
 const subscriptionPlans = ref([
@@ -438,7 +576,7 @@ const subscriptionPlans = ref([
       '邮件支持'
     ]
   },
-   
+
   {
     id: 'enterprise',
     name: '企业套餐',
@@ -523,10 +661,9 @@ const usageColumns = [
 ];
 
 
-
 // 更新用户信息
 onMounted(() => {
-  // ... existing code ...
+  
   // 设置用户信息
   userInfo.username = username.value;
 });
@@ -542,23 +679,24 @@ import type {MenuInfo} from 'ant-design-vue/lib/menu/src/interface';
 import {useRouter} from 'vue-router';
 import {onMounted, onUnmounted} from 'vue';
 import {jwtDecode} from 'jwt-decode';
-import  type{IApiResponse} from "@/interface/IApiResponse.ts";
+import type {IApiResponse} from "@/interface/IApiResponse.ts";
 import {generatorImg} from '@/api/generator.ts'
 
 // 模型选择
-import type { SelectProps } from 'ant-design-vue';
+import type {SelectProps} from 'ant-design-vue';
 import type {AxiosResponse} from "axios";
+
 const imageOptions = ref<SelectProps['options']>([
-  { value: 'flux-dev-lora-ultra-fast', label: 'flux-dev-lora-ultra-fast' },
-  { value: 'flux-dev-ultra-fast', label: 'flux-dev-ultra-fast' },
-  { value: 'flux-dev', label: 'flux-dev' },
-  { value: 'flux-dev-lora', label: 'flux-dev-lora' },
-  { value: 'flux-schnell', label: 'flux-schnell' },
-  { value: 'flux-schnell-lora', label: 'flux-schnell-lora' },
-  { value: 'flux-redux-dev', label: 'flux-redux-dev' },
-  { value: 'flux-pro-redux', label: 'flux-pro-redux' },
-  { value: 'flux-dev-fill', label: 'flux-dev-fill' },
-  { value: 'flux-control-lora-canny', label: 'flux-control-lora-canny' },
+  {value: 'flux-dev-lora-ultra-fast', label: 'flux-dev-lora-ultra-fast'},
+  {value: 'flux-dev-ultra-fast', label: 'flux-dev-ultra-fast'},
+  {value: 'flux-dev', label: 'flux-dev'},
+  {value: 'flux-dev-lora', label: 'flux-dev-lora'},
+  {value: 'flux-schnell', label: 'flux-schnell'},
+  {value: 'flux-schnell-lora', label: 'flux-schnell-lora'},
+  {value: 'flux-redux-dev', label: 'flux-redux-dev'},
+  {value: 'flux-pro-redux', label: 'flux-pro-redux'},
+  {value: 'flux-dev-fill', label: 'flux-dev-fill'},
+  {value: 'flux-control-lora-canny', label: 'flux-control-lora-canny'},
 ]);
 const filterOption = (input: string, option: any) => {
   return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
@@ -589,7 +727,7 @@ const customWidth = ref<number | null>(1024);
 const customHeight = ref<number | null>(1024);
 const isLoading = ref<boolean>(false);
 const generatedImageUrl = ref<string | null>(null);
- 
+
 const previewVisible = ref<boolean>(false);
 const isMobile = ref(window.innerWidth < 992);
 
@@ -601,16 +739,16 @@ const generationModes = ref([
     name: '文生图',
     icon: FileImageOutlined
   },
-//   {
-//     key: 'image-to-image',
-//     name: '图生图',
-//     icon: PictureModeOutlined
-//   },
-//   {
-//     key: 'text-to-video',
-//     name: '文生视频',
-//     icon: VideoCameraOutlined
-//   }
+  // {
+  //   key: 'image-to-image',
+  //   name: '图生图',
+  //   icon: PictureModeOutlined
+  // },
+  // {
+  //   key: 'text-to-video',
+  //   name: '文生视频',
+  //   icon: VideoCameraOutlined
+  // }
 ]);
 
 // --- Computed Properties ---
@@ -650,20 +788,20 @@ const generateImage = async () => {
   try {
     isLoading.value = true;
     const response: AxiosResponse<IApiResponse> = await generatorImg({
-      prompt:params.prompt,
+      prompt: params.prompt,
       aspectRatio: params.aspectRatio
     });
 
     const {
       data: {resultValue, successful, resultHint},
     } = response;
-    if (!successful)  return  message.error(resultHint);
+    if (!successful) return message.error(resultHint);
     generatedImageUrl.value = resultValue;
   } catch (err) {
     console.error("Failed to load data:", err);
     message.error(`error: ${err}`);
 
-  }finally {
+  } finally {
     isLoading.value = false
   }
 
@@ -701,24 +839,41 @@ async function rewritePrompt() {
   }
 }
 
-
-const handleMenuClick = (e: MenuInfo) => {
+/**
+ * 下拉菜单选项
+ * @param e
+ */
+const handleMenuClick = async(e: MenuInfo) => {
   if (e.key === 'logout') {
     localStorage.removeItem("Authorization");
-    router.push('/login');  
-
+    router.push('/login');
   } else if (e.key === 'settings') {
+    try {
+        const response: AxiosResponse<IApiResponse> =await   getUserInfo( userId.value);
+        const {
+          data: {successful, resultHint,resultValue},
+        } = response;
+        if (!successful) return message.error(resultHint);
+        userInfo.username=resultValue.username;
+        userInfo.email=resultValue.email;
+        
+      } catch (err) {
+        console.error("Failed to load data:", err);
+        message.error(`error: ${err}`);
 
+      }  
     open.value = true;
   }
 };
 
+const userId = ref("");
 // --- Lifecycle Hooks ---
 onMounted(() => {
   const loginfo = localStorage.getItem("Authorization");
   if (loginfo) {
     try {
       const token = jwtDecode(loginfo);
+      userId.value = (token as { userId: string }).userId;
       const nameFromToken = (token as { userName: string }).userName;
       currentUser.value.name = nameFromToken;
       username.value = nameFromToken;
@@ -923,9 +1078,10 @@ $spacing-lg: 24px;
     }
   }
 
-  :deep(.ant-select){
+  :deep(.ant-select) {
     width: 100% !important;
   }
+
   .custom-ratio {
     display: flex;
     flex-direction: column;
@@ -1067,69 +1223,69 @@ $spacing-lg: 24px;
 
 // 用户区域样式
 .user-area {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 $spacing-md;
+  position: relative;
+
+  .user-dropdown {
+    height: 100%;
     display: flex;
     align-items: center;
-    height: 100%;
-    padding: 0 $spacing-md;
-    position: relative;
-    
-    .user-dropdown {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 $spacing-sm;
-      
-      &:hover {
-        background-color: $hover-bg;
-        border-radius: 4px;
-      }
-    }
-    
-    :deep(.anticon) {
-      vertical-align: middle;
-      font-size: 16px;
-      margin-right: 2px;
+    justify-content: space-between;
+    padding: 0 $spacing-sm;
+
+    &:hover {
+      background-color: $hover-bg;
+      border-radius: 4px;
     }
   }
 
+  :deep(.anticon) {
+    vertical-align: middle;
+    font-size: 16px;
+    margin-right: 2px;
+  }
+}
+
 // 用户下拉菜单触发器样式
 .user-dropdown-trigger {
-    display: flex;
-    align-items: center;
-    padding: $spacing-sm $spacing-md;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    color: $text-color;
-  
-    &:hover {
-      background-color: $hover-bg;
-      
-      .dropdown-arrow {
-        transform: rotate(180deg);
-      }
-    }
-  
-    .user-avatar {
-      margin-right: 10px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-  
-    .username {
-      font-weight: 500;
-      margin: 0 $spacing-sm 0 $spacing-sm;
-      font-size: 14px;
-      letter-spacing: 0.5px;
-    }
-  
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: $text-color;
+
+  &:hover {
+    background-color: $hover-bg;
+
     .dropdown-arrow {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.8);
-      transition: transform 0.3s ease;
-      margin-left: 4px;
+      transform: rotate(180deg);
     }
   }
+
+  .user-avatar {
+    margin-right: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .username {
+    font-weight: 500;
+    margin: 0 $spacing-sm 0 $spacing-sm;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .dropdown-arrow {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: transform 0.3s ease;
+    margin-left: 4px;
+  }
+}
 
 // 下拉菜单样式
 .user-dropdown-menu {
@@ -1153,26 +1309,22 @@ $spacing-lg: 24px;
     margin: 4px 0;
   }
 }
-// ... existing code ...
 
-// 设置弹窗样式
-// ... existing code ...
+ 
 
 // SCSS变量定义 - 增加圆角
 $primary-color: #3f51b5; // 主色调：靛蓝色
-// ... other variables ...
 $border-radius: 6px; // 基础圆角，可以适当增大
 $card-radius: 12px; // 卡片圆角，增大
 $button-radius: 8px; // 按钮圆角，增大
 $danger-color: #f5222d; // 危险色
-// ... other variables ...
 
 // 设置弹窗样式
 .settings-modal {
-     
-    
+
+
   :deep(.ant-modal-content) {
-    
+
     border-radius: $card-radius; // 使用增大的圆角
     overflow: hidden;
   }
@@ -1270,30 +1422,34 @@ $danger-color: #f5222d; // 危险色
       .ant-input, .ant-input-number, .ant-select-selector {
         border-radius: $border-radius; // 应用基础圆角
       }
+
       .ant-input-affix-wrapper {
         border-radius: $border-radius; // 应用基础圆角
       }
+
       .ant-btn {
         border-radius: $button-radius; // 应用按钮圆角
       }
     }
+
     .account-management {
-        margin-top: $spacing-md;
-        padding: $spacing-md;
-        background-color: lighten($danger-color, 45%); // 淡红色背景
-        border: 1px solid lighten($danger-color, 30%);
-        border-radius: $border-radius;
-  
-        .delete-warning {
-          color: $danger-color; // 红色文字
-          margin-bottom: $spacing-md;
-          font-size: 13px;
-        }
+      margin-top: $spacing-md;
+      padding: $spacing-md;
+      background-color: lighten($danger-color, 45%); // 淡红色背景
+      border: 1px solid lighten($danger-color, 30%);
+      border-radius: $border-radius;
+
+      .delete-warning {
+        color: $danger-color; // 红色文字
+        margin-bottom: $spacing-md;
+        font-size: 13px;
       }
+    }
   }
 
   .subscription-status {
     margin-bottom: $spacing-lg;
+
     :deep(.ant-alert) {
       border-radius: $border-radius; // 为提示框增加圆角
     }
@@ -1324,8 +1480,9 @@ $danger-color: #f5222d; // 危险色
         border-bottom: 1px solid #e8e8e8; // 头部底边框
         padding: $spacing-sm $spacing-md; // 调整头部内边距
       }
+
       :deep(.ant-card-body) {
-         padding: $spacing-md;
+        padding: $spacing-md;
       }
 
       &.selected-plan {
@@ -1334,10 +1491,10 @@ $danger-color: #f5222d; // 危险色
         transform: translateY(-2px); // 选中时轻微上浮
         background-color: lighten($primary-light, 35%); // 选中时淡蓝色背景
 
-         :deep(.ant-card-head) {
-           background-color: lighten($primary-light, 30%); // 选中时头部背景也变化
-           border-bottom-color: lighten($primary-color, 20%);
-         }
+        :deep(.ant-card-head) {
+          background-color: lighten($primary-light, 30%); // 选中时头部背景也变化
+          border-bottom-color: lighten($primary-color, 20%);
+        }
       }
 
       &:hover:not(.selected-plan) { // 未选中时的悬停效果
@@ -1355,10 +1512,11 @@ $danger-color: #f5222d; // 危险色
           font-weight: 600;
           color: $text-dark; // 标题颜色
         }
+
         .ant-tag {
-            border-radius: $border-radius;
-            font-size: 12px; // 调整标签字体大小
-            padding: 2px 6px; // 调整标签内边距
+          border-radius: $border-radius;
+          font-size: 12px; // 调整标签字体大小
+          padding: 2px 6px; // 调整标签内边距
         }
       }
 
@@ -1403,54 +1561,84 @@ $danger-color: #f5222d; // 危险色
         transform: translateX(-50%); // 精确居中
         // right: $spacing-md; // 移除右侧定位
         :deep(.ant-radio) { // 隐藏原始 radio 圆圈，因为整个卡片是可选的
-            display: none;
+          display: none;
         }
-         // 可以考虑添加一个视觉上的选中标记，例如在卡片角落加一个勾
-         // &::after { ... }
+
+        // 可以考虑添加一个视觉上的选中标记，例如在卡片角落加一个勾
+        // &::after { ... }
       }
     }
 
-  .usage-stats {
-    :deep(.ant-statistic) {
-      background-color: #fff;
-      padding: $spacing-md;
-      border-radius: $border-radius; // 统计卡片圆角
-      box-shadow: $card-shadow;
-    }
-    .usage-progress {
-      margin: $spacing-lg 0;
+    .usage-stats {
+      :deep(.ant-statistic) {
+        background-color: #fff;
+        padding: $spacing-md;
+        border-radius: $border-radius; // 统计卡片圆角
+        box-shadow: $card-shadow;
+      }
 
-      .progress-label {
-        margin-bottom: $spacing-sm;
-        font-weight: 500;
-      }
-      :deep(.ant-progress-inner) {
-        border-radius: $button-radius; // 进度条圆角
-      }
-      :deep(.ant-progress-bg) {
-        border-radius: $button-radius; // 进度条圆角
-      }
-    }
+      .usage-progress {
+        margin: $spacing-lg 0;
 
-    .usage-history {
-      margin-top: $spacing-lg;
-      :deep(.ant-table-wrapper) {
-        border-radius: $border-radius; // 表格圆角
-        overflow: hidden; // 隐藏内部超出部分
+        .progress-label {
+          margin-bottom: $spacing-sm;
+          font-weight: 500;
+        }
+
+        :deep(.ant-progress-inner) {
+          border-radius: $button-radius; // 进度条圆角
+        }
+
+        :deep(.ant-progress-bg) {
+          border-radius: $button-radius; // 进度条圆角
+        }
       }
-      :deep(.ant-table) {
-        border-radius: $border-radius;
-      }
-      :deep(.ant-table-thead > tr > th) {
-        background-color: #fafafa; // 表头背景色
-      }
-      :deep(.ant-pagination) {
-        margin-top: $spacing-md;
-        padding-right: $spacing-sm; // 分页器右侧留出空间
+
+      .usage-history {
+        margin-top: $spacing-lg;
+
+        :deep(.ant-table-wrapper) {
+          border-radius: $border-radius; // 表格圆角
+          overflow: hidden; // 隐藏内部超出部分
+        }
+
+        :deep(.ant-table) {
+          border-radius: $border-radius;
+        }
+
+        :deep(.ant-table-thead > tr > th) {
+          background-color: #fafafa; // 表头背景色
+        }
+
+        :deep(.ant-pagination) {
+          margin-top: $spacing-md;
+          padding-right: $spacing-sm; // 分页器右侧留出空间
+        }
       }
     }
   }
 }
+
+.language-settings,
+.theme-settings,
+.default-image-settings,
+.api-key-settings {
+  margin: 16px 0;
 }
- 
+
+.setting-item {
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+}
+
+.setting-label {
+  width: 120px;
+  margin-right: 8px;
+}
+
+.theme-settings .ant-radio-group {
+  display: flex;
+  gap: 16px;
+}
 </style>
